@@ -1,6 +1,6 @@
 "use client";
 
-import "@/lib/buffer-fix";
+import "@/lib/buffer-patch";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,9 +36,11 @@ interface AztecModules {
 export default function Testing() {
   // Aztec modules state
   const [aztec, setAztec] = useState<AztecModules | null>(null);
-  const [EmbeddedWallet, setEmbeddedWallet] = useState<any>(null);
-  const [GodsHandContract, setGodsHandContract] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Store module references
+  const [embeddedWalletClass, setEmbeddedWalletClass] = useState<any>(null);
+  const [godsHandContractClass, setGodsHandContractClass] = useState<any>(null);
 
   // Wallet state
   const [wallet, setWallet] = useState<any>(null);
@@ -96,12 +98,20 @@ export default function Testing() {
     try {
       setStatus("Loading Aztec modules...");
 
+      // Force buffer patch to load first and wait for it
+      await import("@/lib/buffer-patch");
+
+      // Small delay to ensure buffer is properly set up
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Use dynamic imports directly
-      const [aztecJs, embeddedWallet, godsHandContract] = await Promise.all([
-        import("@aztec/aztec.js"),
-        import("@/lib/embedded-wallet").then((m) => m.EmbeddedWallet),
-        import("@/lib/artifacts/GodsHand").then((m) => m.GodsHandContract),
-      ]);
+      const [aztecJs, embeddedWalletModule, godsHandModule] = await Promise.all(
+        [
+          import("@aztec/aztec.js"),
+          import("@/lib/embedded-wallet"),
+          import("@/lib/artifacts/GodsHand"),
+        ]
+      );
 
       setAztec({
         AztecAddress: aztecJs.AztecAddress,
@@ -109,14 +119,14 @@ export default function Testing() {
         AccountWallet: aztecJs.AccountWallet,
       });
 
-      setEmbeddedWallet(embeddedWallet);
-      setGodsHandContract(godsHandContract);
+      setEmbeddedWalletClass(embeddedWalletModule.EmbeddedWallet);
+      setGodsHandContractClass(godsHandModule.GodsHandContract);
 
       setIsLoading(false);
       setStatus("Aztec modules loaded successfully");
 
       // Initialize wallet after modules are loaded
-      await initializeWallet(embeddedWallet);
+      await initializeWallet();
     } catch (err) {
       setError(
         `Failed to load Aztec modules: ${
@@ -127,10 +137,11 @@ export default function Testing() {
     }
   };
 
-  const initializeWallet = async (EmbeddedWalletClass: any) => {
+  const initializeWallet = async () => {
+    if (!embeddedWalletClass) return;
     try {
       setStatus("Initializing wallet...");
-      const walletInstance = new EmbeddedWalletClass(
+      const walletInstance = new embeddedWalletClass(
         process.env.NEXT_PUBLIC_AZTEC_NODE_URL || ""
       );
       await walletInstance.initialize();
@@ -170,10 +181,11 @@ export default function Testing() {
   };
 
   const connectContract = async () => {
-    if (!account || !contractAddress || !aztec || !GodsHandContract) return;
+    if (!account || !contractAddress || !aztec || !godsHandContractClass)
+      return;
     try {
       setStatus("Connecting to contract...");
-      const contractInstance = await GodsHandContract.at(
+      const contractInstance = await godsHandContractClass.at(
         aztec.AztecAddress.fromString(contractAddress),
         account
       );

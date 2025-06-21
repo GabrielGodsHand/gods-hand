@@ -37,6 +37,11 @@ const nextConfig = {
     config.externals = config.externals || [];
     config.externals.push("pino-pretty", "encoding");
 
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      buffer: require.resolve("buffer"),
+    };
+
     return config;
   },
 
