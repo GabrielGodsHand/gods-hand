@@ -189,6 +189,12 @@ describe("GodsHand", () => {
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
 
+    // Register contract with PXE for all wallets to use
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
+
     // Create disaster (admin is agent by default)
     const disasterHash = await contract.methods
       .create_disaster(new Fr(123), new Fr(456), 1000000n)
@@ -205,9 +211,10 @@ describe("GodsHand", () => {
       .simulate();
     expect(donationCount).toBe(0n);
 
-    // Make donation
+    // Make donation using the donor's wallet
     const donor = randomWallets[0];
     const contractWithDonor = contract.withWallet(donor);
+
     await contractWithDonor.methods
       .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
@@ -227,6 +234,12 @@ describe("GodsHand", () => {
     )
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
+
+    // Register contract with PXE for all wallets to use
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
     const disasterHash = await contract.methods
       .create_disaster(new Fr(123), new Fr(456), 1000000n)
@@ -278,6 +291,12 @@ describe("GodsHand", () => {
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
 
+    // Register contract with PXE for all wallets to use
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
+
     // Create disaster
     const disasterHash = await contract.methods
       .create_disaster(new Fr(123), new Fr(456), 1000000n)
@@ -298,6 +317,7 @@ describe("GodsHand", () => {
     const voter = randomWallets[0];
     const org = randomAddresses[1];
     const contractWithVoter = contract.withWallet(voter);
+
     await contractWithVoter.methods
       .vote(disasterHash, org, 1)
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
@@ -315,6 +335,12 @@ describe("GodsHand", () => {
     )
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
+
+    // Register contract with PXE for all wallets to use
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
     // Create disaster
     const disasterHash = await contract.methods
@@ -357,6 +383,12 @@ describe("GodsHand", () => {
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
 
+    // Register contract with PXE for all wallets to use
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
+
     // Create disaster
     const disasterHash = await contract.methods
       .create_disaster(new Fr(123), new Fr(456), 1000000n)
@@ -388,7 +420,9 @@ describe("GodsHand", () => {
     expect(unlockedFunds).toBe(5000n);
 
     // Claim funds
-    const contractWithOrg = contract.withWallet(randomWallets[0]); // org wallet
+    const orgWallet = randomWallets[0]; // org wallet
+    const contractWithOrg = contract.withWallet(orgWallet);
+
     await contractWithOrg.methods
       .claim(disasterHash)
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
@@ -409,6 +443,12 @@ describe("GodsHand", () => {
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
 
+    // Register contract with PXE for all wallets to use
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
+
     const agent = randomAddresses[0];
 
     // Check agent is not authorized initially
@@ -426,7 +466,9 @@ describe("GodsHand", () => {
     expect(isAgent).toBe(true);
 
     // Agent should be able to create disaster
-    const contractWithAgent = contract.withWallet(randomWallets[0]);
+    const agentWallet = randomWallets[0];
+    const contractWithAgent = contract.withWallet(agentWallet);
+
     const disasterHash = await contractWithAgent.methods
       .create_disaster(new Fr(789), new Fr(101112), 2000000n)
       .simulate();

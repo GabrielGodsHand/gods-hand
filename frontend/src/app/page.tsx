@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { User } from '@supabase/supabase-js';
-import DivineParallax from '@/components/DivineParallax';
-import Header from '@/components/Header';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
+import DivineParallax from "@/components/DivineParallax";
+import Header from "@/components/Header";
 
 export default function Home() {
   const router = useRouter();
@@ -16,7 +16,9 @@ export default function Home() {
   useEffect(() => {
     // Check authentication status
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
     };
@@ -24,19 +26,22 @@ export default function Home() {
     checkAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      console.log("user", user);
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [supabase.auth, user]);
 
   useEffect(() => {
     // Load divine parallax CSS only for this page
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/styles/divine-parallax.css';
-    link.id = 'divine-parallax-styles';
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "/styles/divine-parallax.css";
+    link.id = "divine-parallax-styles";
     document.head.appendChild(link);
 
     // Initialize the divine parallax effect
@@ -44,7 +49,7 @@ export default function Home() {
 
     // Cleanup function to remove styles when component unmounts
     return () => {
-      const existingLink = document.getElementById('divine-parallax-styles');
+      const existingLink = document.getElementById("divine-parallax-styles");
       if (existingLink) {
         document.head.removeChild(existingLink);
       }
@@ -53,7 +58,7 @@ export default function Home() {
 
   const handleViewEvents = () => {
     // Always redirect to events page regardless of authentication status
-    router.push('/events');
+    router.push("/events");
   };
 
   return (
@@ -65,22 +70,30 @@ export default function Home() {
       <main id="divine-parallax" className="parallax-container">
         {/* Background gradient */}
         <div className="parallax-layer" id="bg-gradient"></div>
-        
+
         {/* Single cloud layer */}
         <div className="parallax-layer clouds-layer" id="clouds-far">
-          <img src="/assets/clouds.PNG" alt="Divine Clouds" className="clouds-image" />
+          <img
+            src="/assets/clouds.PNG"
+            alt="Divine Clouds"
+            className="clouds-image"
+          />
         </div>
 
         {/* The Divine Hand - scroll controlled */}
         <div className="parallax-layer" id="divine-hand">
-          <img src="/assets/hand.PNG" alt="Divine Hand" className="hand-image" />
+          <img
+            src="/assets/hand.PNG"
+            alt="Divine Hand"
+            className="hand-image"
+          />
           <div className="hand-glow"></div>
         </div>
 
         {/* Hero Text - appears when hand animation completes */}
         <div className="parallax-layer hero-text-container">
           <div className="hero-content">
-            <h1 className="hero-title">God's Hand</h1>
+            <h1 className="hero-title">God&apos;s Hand</h1>
             <div className="scroll-indicator">
               <p>Scroll For Blessings</p>
               <div className="scroll-arrow">
@@ -89,11 +102,18 @@ export default function Home() {
                 <span></span>
               </div>
             </div>
-            <p className="hero-subtitle">Where Heaven Hears, and Humanity Helps — One Anonymous Gift at a Time.</p>
+            <p className="hero-subtitle">
+              Where Heaven Hears, and Humanity Helps — One Anonymous Gift at a
+              Time.
+            </p>
             <div className="divine-buttons">
-              <button className="divine-btn primary" onClick={handleViewEvents} disabled={loading}>
+              <button
+                className="divine-btn primary"
+                onClick={handleViewEvents}
+                disabled={loading}
+              >
                 <span className="btn-text">
-                  {loading ? 'Loading...' : 'View Events'}
+                  {loading ? "Loading..." : "View Events"}
                 </span>
                 <div className="btn-glow"></div>
               </button>
@@ -103,7 +123,7 @@ export default function Home() {
       </main>
 
       {/* Scroll space */}
-      <div style={{ height: '500vh', background: 'transparent' }}></div>
+      <div style={{ height: "500vh", background: "transparent" }}></div>
     </>
   );
 }
