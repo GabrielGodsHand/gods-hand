@@ -18,6 +18,13 @@ const nextConfig = {
         process: require.resolve("process/browser"),
         os: require.resolve("os-browserify/browser"),
       };
+
+      // Critical: Define Buffer globally
+      config.plugins.push(
+        new (require("webpack").DefinePlugin)({
+          global: "globalThis",
+        })
+      );
     }
 
     config.plugins.push(
@@ -27,11 +34,28 @@ const nextConfig = {
       })
     );
 
-    // Ignore pino and other problematic modules
     config.externals = config.externals || [];
     config.externals.push("pino-pretty", "encoding");
 
     return config;
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+        ],
+      },
+    ];
   },
 };
 

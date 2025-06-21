@@ -7,11 +7,5 @@ fn main(
     proof: [Field; HONK_PROOF_SIZE],
     public_inputs: pub [Field; 1],
 ) {
-    std::verify_proof_with_type(
-        verification_key,
-        proof,
-        public_inputs,
-        0x0,
-        HONK_IDENTIFIER,
-    );
+    std::verify_proof_with_type(verification_key, proof, public_inputs, 0x0, HONK_IDENTIFIER);
 }

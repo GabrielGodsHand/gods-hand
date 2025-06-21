@@ -9,12 +9,14 @@
     "dependencies": {
         "@aztec/accounts": "0.87.4",
         "@aztec/aztec.js": "0.87.4",
+        "@aztec/bb.js": "^0.87.9",
         "@aztec/constants": "0.87.4",
         "@aztec/foundation": "0.87.4",
         "@aztec/kv-store": "0.87.4",
         "@aztec/noir-contracts.js": "0.87.4",
         "@aztec/pxe": "0.87.4",
         "@aztec/stdlib": "0.87.4",
+        "@noir-lang/noir_js": "^1.0.0-beta.7",
         "tsx": "^4.20.3"
     },
     "devDependencies": {
