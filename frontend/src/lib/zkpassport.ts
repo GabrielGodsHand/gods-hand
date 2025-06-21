@@ -23,7 +23,7 @@ export class ZKPassportService {
     try {
       const queryBuilder = await this.zkPassport.request({
         name: "ZKPassport",
-        logo: "https://gods-hand.vercel.app/hand.png",
+        logo: "https://gods-hand.vercel.app/assets/hand.png",
         purpose: `Prove you are ${minAge}+ years old`,
         scope: "adult",
         devMode: true,
