@@ -4,7 +4,7 @@ pragma solidity >=0.8.27;
 
 import {IEmperor} from "../../governance/interfaces/IEmpire.sol";
 import {Timestamp, Slot, Epoch} from "../../shared/libraries/TimeMath.sol";
-import {Checkpoints} from "@oz/utils/structs/Checkpoints.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 struct ValidatorSelectionStorage {
     // A mapping to snapshots of the validator set

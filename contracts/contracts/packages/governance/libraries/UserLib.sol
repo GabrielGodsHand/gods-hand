@@ -4,8 +4,8 @@ pragma solidity >=0.8.27;
 
 import {Errors} from "./Errors.sol";
 import {Timestamp} from "../../shared/libraries/TimeMath.sol";
-import {SafeCast} from "@oz/utils/math/SafeCast.sol";
-import {Checkpoints} from "@oz/utils/structs/Checkpoints.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 struct User {
     Checkpoints.Trace224 checkpoints;

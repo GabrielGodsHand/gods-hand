@@ -6,7 +6,7 @@ import {IFeeJuicePortal} from "../core/interfaces/IFeeJuicePortal.sol";
 import {IRollup} from "../core/interfaces/IRollup.sol";
 import {IInbox} from "../core/interfaces/messagebridge/IInbox.sol";
 import {TestERC20} from "./TestERC20.sol";
-import {IERC20} from "@oz/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MockFeeJuicePortal is IFeeJuicePortal {
     // solhint-disable ordering

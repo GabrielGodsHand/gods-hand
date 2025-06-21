@@ -5,7 +5,7 @@ pragma solidity >=0.8.27;
 // solhint-disable-next-line no-unused-import
 import {Timestamp, Slot, Epoch} from "../../shared/libraries/TimeMath.sol";
 
-import {SafeCast} from "@oz/utils/math/SafeCast.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 struct TimeStorage {
     uint128 genesisTime;

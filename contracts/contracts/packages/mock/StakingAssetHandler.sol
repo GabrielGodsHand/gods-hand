@@ -4,7 +4,7 @@ pragma solidity >=0.8.27;
 import {IStaking} from "../core/interfaces/IStaking.sol";
 import {IRegistry} from "../governance/interfaces/IRegistry.sol";
 import {IMintableERC20} from "../shared/interfaces/IMintableERC20.sol";
-import {Ownable} from "@oz/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ZKPassportVerifier, ProofVerificationParams} from "@zkpassport/ZKPassportVerifier.sol";
 import {QueueLib, Queue} from "./staking_asset_handler/Queue.sol";
 

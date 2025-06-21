@@ -2,7 +2,7 @@
 pragma solidity >=0.8.27;
 
 import {IMintableERC20} from "../shared/interfaces/IMintableERC20.sol";
-import {Ownable} from "@oz/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IFeeAssetHandler {
     event MintAmountSet(uint256 amount);

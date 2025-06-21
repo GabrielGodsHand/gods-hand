@@ -9,12 +9,12 @@ import {Errors} from "../Errors.sol";
 import {StakingLib} from "./StakingLib.sol";
 import {Timestamp, Slot, Epoch, TimeLib} from "../TimeLib.sol";
 import {SignatureLib, Signature, CommitteeAttestation} from "../../../shared/libraries/SignatureLib.sol";
-import {MessageHashUtils} from "@oz/utils/cryptography/MessageHashUtils.sol";
-import {SafeCast} from "@oz/utils/math/SafeCast.sol";
-import {SlotDerivation} from "@oz/utils/SlotDerivation.sol";
-import {Checkpoints} from "@oz/utils/structs/Checkpoints.sol";
-import {EnumerableSet} from "@oz/utils/structs/EnumerableSet.sol";
-import {TransientSlot} from "@oz/utils/TransientSlot.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SlotDerivation} from "@openzeppelin/contracts/utils/SlotDerivation.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {TransientSlot} from "@openzeppelin/contracts/utils/TransientSlot.sol";
 
 library ValidatorSelectionLib {
     using EnumerableSet for EnumerableSet.AddressSet;

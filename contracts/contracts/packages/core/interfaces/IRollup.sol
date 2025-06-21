@@ -15,7 +15,7 @@ import {IHaveVersion} from "../../governance/interfaces/IRegistry.sol";
 import {IRewardDistributor} from "../../governance/interfaces/IRewardDistributor.sol";
 import {CommitteeAttestation} from "../../shared/libraries/SignatureLib.sol";
 import {Timestamp, Slot, Epoch} from "../../shared/libraries/TimeMath.sol";
-import {IERC20} from "@oz/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct PublicInputArgs {
     bytes32 previousArchive;

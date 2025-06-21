@@ -10,10 +10,10 @@ import {DelegationLib, DelegationData} from "./libraries/DelegationLib.sol";
 import {Errors} from "./libraries/Errors.sol";
 import {ProposalLib} from "./libraries/ProposalLib.sol";
 import {Timestamp} from "../shared/libraries/TimeMath.sol";
-import {Ownable} from "@oz/access/Ownable.sol";
-import {IERC20} from "@oz/token/ERC20/IERC20.sol";
-import {SafeCast} from "@oz/utils/math/SafeCast.sol";
-import {Checkpoints} from "@oz/utils/structs/Checkpoints.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 struct AttesterConfig {
     address withdrawer;

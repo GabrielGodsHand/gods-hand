@@ -4,7 +4,7 @@ pragma solidity >=0.8.27;
 
 import {Proposal, ProposalState} from "../interfaces/IGovernance.sol";
 import {Timestamp} from "../../shared/libraries/TimeMath.sol";
-import {Math} from "@oz/utils/math/Math.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 enum VoteTabulationReturn {
     Accepted,

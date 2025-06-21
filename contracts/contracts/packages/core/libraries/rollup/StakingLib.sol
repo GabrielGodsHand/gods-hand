@@ -11,10 +11,10 @@ import {GSE, AttesterConfig} from "../../../governance/GSE.sol";
 import {Proposal} from "../../../governance/interfaces/IGovernance.sol";
 import {ProposalLib} from "../../../governance/libraries/ProposalLib.sol";
 import {GovernanceProposer} from "../../../governance/proposer/GovernanceProposer.sol";
-import {IERC20} from "@oz/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@oz/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "@oz/utils/math/Math.sol";
-import {SafeCast} from "@oz/utils/math/SafeCast.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 // None -> Does not exist in our setup
 // Validating -> Participating as validator

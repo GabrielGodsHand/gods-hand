@@ -5,7 +5,7 @@ pragma solidity >=0.8.27;
 import {Exit, Status, AttesterView} from "../libraries/rollup/StakingLib.sol";
 import {AttesterConfig, GSE} from "../../governance/GSE.sol";
 import {Timestamp, Epoch} from "../../shared/libraries/TimeMath.sol";
-import {IERC20} from "@oz/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IStakingCore {
     event SlasherUpdated(

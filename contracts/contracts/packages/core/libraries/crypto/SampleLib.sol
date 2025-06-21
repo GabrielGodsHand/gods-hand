@@ -3,8 +3,8 @@
 pragma solidity >=0.8.27;
 
 import {Errors} from "../Errors.sol";
-import {SlotDerivation} from "@oz/utils/SlotDerivation.sol";
-import {TransientSlot} from "@oz/utils/TransientSlot.sol";
+import {SlotDerivation} from "@openzeppelin/contracts/utils/SlotDerivation.sol";
+import {TransientSlot} from "@openzeppelin/contracts/utils/TransientSlot.sol";
 
 /**
  * @title   SampleLib

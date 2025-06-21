@@ -5,7 +5,7 @@ pragma solidity >=0.8.27;
 import {Hash} from "../crypto/Hash.sol";
 
 import {Slot, Timestamp} from "../TimeLib.sol";
-import {SafeCast} from "@oz/utils/math/SafeCast.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 struct AppendOnlyTreeSnapshot {
     bytes32 root;

@@ -25,11 +25,11 @@ import {Outbox} from "./messagebridge/Outbox.sol";
 import {Slasher} from "./slashing/Slasher.sol";
 import {GSE} from "../governance/GSE.sol";
 import {IRewardDistributor} from "../governance/interfaces/IRewardDistributor.sol";
-import {Ownable} from "@oz/access/Ownable.sol";
-import {IERC20} from "@oz/token/ERC20/IERC20.sol";
-import {EIP712} from "@oz/utils/cryptography/EIP712.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {RewardLib, RewardConfig} from "./libraries/rollup/RewardLib.sol";
-import {Math} from "@oz/utils/math/Math.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title Rollup
