@@ -26,6 +26,7 @@ export class ZKPassportService {
         logo: "https://gods-hand.vercel.app/hand.png",
         purpose: `Prove you are ${minAge}+ years old`,
         scope: "adult",
+        devMode: true,
       });
 
       const { url, onResult } = queryBuilder.gte("age", minAge).done();
