@@ -1,0 +1,40 @@
+{
+    "name": "aztec-wallet",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "tsx index.ts",
+        "dev": "tsx watch index.ts"
+    },
+    "dependencies": {
+        "@aztec/accounts": "0.87.4",
+        "@aztec/aztec.js": "0.87.4",
+        "@aztec/constants": "0.87.4",
+        "@aztec/foundation": "0.87.4",
+        "@aztec/kv-store": "0.87.4",
+        "@aztec/noir-contracts.js": "0.87.4",
+        "@aztec/pxe": "0.87.4",
+        "@aztec/stdlib": "0.87.4",
+        "tsx": "^4.20.3"
+    },
+    "devDependencies": {
+        "@playwright/test": "1.52.0",
+        "@types/node": "^22.15.17",
+        "assert": "^2.1.0",
+        "buffer": "^6.0.3",
+        "crypto-browserify": "^3.12.1",
+        "css-loader": "^6.10.0",
+        "dotenv-webpack": "^8.0.1",
+        "html-webpack-plugin": "^5.6.0",
+        "prettier": "^3.5.3",
+        "process": "^0.11.10",
+        "stream-browserify": "^3.0.0",
+        "style-loader": "^3.3.4",
+        "ts-loader": "^9.5.1",
+        "typescript": "^5.3.3",
+        "util": "^0.12.5",
+        "webpack": "^5.99.6",
+        "webpack-cli": "^6.0.1",
+        "webpack-dev-server": "^5.2.1"
+    }
+}

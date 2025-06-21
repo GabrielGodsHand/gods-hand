@@ -1,7 +1,7 @@
-// app/gods-hand-test/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +17,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AztecAddress, Fr, type AccountWallet } from "@aztec/aztec.js";
-import { EmbeddedWallet } from "@/lib/embedded-wallet"; // Adjust path as needed
-import { GodsHandContract } from "@/lib/artifacts/GodsHand"; // Adjust path as needed
 
 interface DisasterInfo {
   title: string;
@@ -29,10 +26,22 @@ interface DisasterInfo {
   active: boolean;
 }
 
+interface AztecModules {
+  AztecAddress: any;
+  Fr: any;
+  AccountWallet: any;
+}
+
 export default function GodsHandTestPage() {
+  // Aztec modules state
+  const [aztec, setAztec] = useState<AztecModules | null>(null);
+  const [EmbeddedWallet, setEmbeddedWallet] = useState<any>(null);
+  const [GodsHandContract, setGodsHandContract] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Wallet state
-  const [wallet, setWallet] = useState<EmbeddedWallet | null>(null);
-  const [account, setAccount] = useState<AccountWallet | null>(null);
+  const [wallet, setWallet] = useState<any>(null);
+  const [account, setAccount] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -79,13 +88,48 @@ export default function GodsHandTestPage() {
   >([]);
 
   useEffect(() => {
-    initializeWallet();
+    loadAztecModules();
   }, []);
 
-  const initializeWallet = async () => {
+  const loadAztecModules = async () => {
+    try {
+      setStatus("Loading Aztec modules...");
+
+      // Dynamic imports for Aztec modules
+      const [aztecJs, embeddedWallet, godsHandContract] = await Promise.all([
+        import("@aztec/aztec.js"),
+        import("@/lib/embedded-wallet"),
+        import("@/lib/artifacts/GodsHand"),
+      ]);
+
+      setAztec({
+        AztecAddress: aztecJs.AztecAddress,
+        Fr: aztecJs.Fr,
+        AccountWallet: aztecJs.AccountWallet,
+      });
+
+      setEmbeddedWallet(embeddedWallet.EmbeddedWallet);
+      setGodsHandContract(godsHandContract.GodsHandContract);
+
+      setIsLoading(false);
+      setStatus("Aztec modules loaded successfully");
+
+      // Initialize wallet after modules are loaded
+      await initializeWallet(embeddedWallet.EmbeddedWallet);
+    } catch (err) {
+      setError(
+        `Failed to load Aztec modules: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const initializeWallet = async (EmbeddedWalletClass: any) => {
     try {
       setStatus("Initializing wallet...");
-      const walletInstance = new EmbeddedWallet(
+      const walletInstance = new EmbeddedWalletClass(
         process.env.NEXT_PUBLIC_AZTEC_NODE_URL || ""
       );
       await walletInstance.initialize();
@@ -125,11 +169,11 @@ export default function GodsHandTestPage() {
   };
 
   const connectContract = async () => {
-    if (!account || !contractAddress) return;
+    if (!account || !contractAddress || !aztec || !GodsHandContract) return;
     try {
       setStatus("Connecting to contract...");
       const contractInstance = await GodsHandContract.at(
-        AztecAddress.fromString(contractAddress),
+        aztec.AztecAddress.fromString(contractAddress),
         account
       );
       setContract(contractInstance);
@@ -144,12 +188,12 @@ export default function GodsHandTestPage() {
   };
 
   const addAgent = async () => {
-    if (!contract || !newAgentAddress) return;
+    if (!contract || !newAgentAddress || !aztec) return;
     setLoading(true);
     try {
       setStatus("Adding agent...");
       const interaction = contract.methods.add_agent(
-        AztecAddress.fromString(newAgentAddress)
+        aztec.AztecAddress.fromString(newAgentAddress)
       );
       await wallet?.sendTransaction(interaction);
       setStatus("Agent added successfully");
@@ -166,13 +210,19 @@ export default function GodsHandTestPage() {
   };
 
   const createDisaster = async () => {
-    if (!contract || !disasterTitle || !disasterMetadata || !disasterAmount)
+    if (
+      !contract ||
+      !disasterTitle ||
+      !disasterMetadata ||
+      !disasterAmount ||
+      !aztec
+    )
       return;
     setLoading(true);
     try {
       setStatus("Creating disaster...");
-      const titleField = Fr.fromString(disasterTitle);
-      const metadataField = Fr.fromString(disasterMetadata);
+      const titleField = aztec.Fr.fromString(disasterTitle);
+      const metadataField = aztec.Fr.fromString(disasterMetadata);
       const amountBigInt = BigInt(disasterAmount);
 
       const interaction = contract.methods.create_disaster(
@@ -199,15 +249,15 @@ export default function GodsHandTestPage() {
   };
 
   const donate = async () => {
-    if (!contract || !donationHash || !donationAmount) return;
+    if (!contract || !donationHash || !donationAmount || !aztec) return;
     setLoading(true);
     try {
       setStatus("Processing donation...");
       const interaction = contract.methods.donate(
-        Fr.fromString(donationHash),
+        aztec.Fr.fromString(donationHash),
         BigInt(donationAmount),
-        Fr.fromString(donationChain || "0"),
-        Fr.fromString(donationToken || "0")
+        aztec.Fr.fromString(donationChain || "0"),
+        aztec.Fr.fromString(donationToken || "0")
       );
       await wallet?.sendTransaction(interaction);
       setStatus("Donation successful");
@@ -227,13 +277,14 @@ export default function GodsHandTestPage() {
   };
 
   const vote = async () => {
-    if (!contract || !voteHash || !voteOrgAddress || !voteType) return;
+    if (!contract || !voteHash || !voteOrgAddress || !voteType || !aztec)
+      return;
     setLoading(true);
     try {
       setStatus("Casting vote...");
       const interaction = contract.methods.vote(
-        Fr.fromString(voteHash),
-        AztecAddress.fromString(voteOrgAddress),
+        aztec.Fr.fromString(voteHash),
+        aztec.AztecAddress.fromString(voteOrgAddress),
         parseInt(voteType)
       );
       await wallet?.sendTransaction(interaction);
@@ -253,13 +304,20 @@ export default function GodsHandTestPage() {
   };
 
   const unlockFunds = async () => {
-    if (!contract || !unlockHash || !unlockOrgAddress || !unlockAmount) return;
+    if (
+      !contract ||
+      !unlockHash ||
+      !unlockOrgAddress ||
+      !unlockAmount ||
+      !aztec
+    )
+      return;
     setLoading(true);
     try {
       setStatus("Unlocking funds...");
       const interaction = contract.methods.unlock_funds(
-        Fr.fromString(unlockHash),
-        AztecAddress.fromString(unlockOrgAddress),
+        aztec.Fr.fromString(unlockHash),
+        aztec.AztecAddress.fromString(unlockOrgAddress),
         BigInt(unlockAmount)
       );
       await wallet?.sendTransaction(interaction);
@@ -279,11 +337,13 @@ export default function GodsHandTestPage() {
   };
 
   const claim = async () => {
-    if (!contract || !claimHash) return;
+    if (!contract || !claimHash || !aztec) return;
     setLoading(true);
     try {
       setStatus("Processing claim...");
-      const interaction = contract.methods.claim(Fr.fromString(claimHash));
+      const interaction = contract.methods.claim(
+        aztec.Fr.fromString(claimHash)
+      );
       await wallet?.sendTransaction(interaction);
       setStatus("Claim processed successfully");
       setClaimHash("");
@@ -299,7 +359,7 @@ export default function GodsHandTestPage() {
   };
 
   const queryContract = async (functionName: string) => {
-    if (!contract) return;
+    if (!contract || !aztec) return;
     try {
       setStatus(`Querying ${functionName}...`);
       let result;
@@ -308,7 +368,7 @@ export default function GodsHandTestPage() {
         case "get_disaster_info":
           if (!queryHash) return;
           result = await wallet?.simulateTransaction(
-            contract.methods.get_disaster_info(Fr.fromString(queryHash))
+            contract.methods.get_disaster_info(aztec.Fr.fromString(queryHash))
           );
           break;
         case "get_admin":
@@ -319,28 +379,30 @@ export default function GodsHandTestPage() {
         case "is_agent":
           if (!queryAddress) return;
           result = await wallet?.simulateTransaction(
-            contract.methods.is_agent(AztecAddress.fromString(queryAddress))
+            contract.methods.is_agent(
+              aztec.AztecAddress.fromString(queryAddress)
+            )
           );
           break;
         case "get_unlocked_funds":
           if (!queryHash || !queryAddress) return;
           result = await wallet?.simulateTransaction(
             contract.methods.get_unlocked_funds(
-              Fr.fromString(queryHash),
-              AztecAddress.fromString(queryAddress)
+              aztec.Fr.fromString(queryHash),
+              aztec.AztecAddress.fromString(queryAddress)
             )
           );
           break;
         case "get_donation_count":
           if (!queryHash) return;
           result = await wallet?.simulateTransaction(
-            contract.methods.get_donation_count(Fr.fromString(queryHash))
+            contract.methods.get_donation_count(aztec.Fr.fromString(queryHash))
           );
           break;
         case "get_vote_count":
           if (!queryHash) return;
           result = await wallet?.simulateTransaction(
-            contract.methods.get_vote_count(Fr.fromString(queryHash))
+            contract.methods.get_vote_count(aztec.Fr.fromString(queryHash))
           );
           break;
         default:
@@ -359,12 +421,12 @@ export default function GodsHandTestPage() {
   };
 
   const deactivateDisaster = async () => {
-    if (!contract || !queryHash) return;
+    if (!contract || !queryHash || !aztec) return;
     setLoading(true);
     try {
       setStatus("Deactivating disaster...");
       const interaction = contract.methods.deactivate_disaster(
-        Fr.fromString(queryHash)
+        aztec.Fr.fromString(queryHash)
       );
       await wallet?.sendTransaction(interaction);
       setStatus("Disaster deactivated successfully");
@@ -378,6 +440,19 @@ export default function GodsHandTestPage() {
       setLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2">Loading Aztec...</h1>
+          <p className="text-muted-foreground">
+            Please wait while we load the Aztec modules
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
