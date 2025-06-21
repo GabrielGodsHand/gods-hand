@@ -1,0 +1,26 @@
+{
+  "name": "aztec-gods-hand-node",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@aztec/accounts": "latest",
+    "@aztec/aztec.js": "latest",
+    "@aztec/constants": "latest",
+    "@aztec/foundation": "latest",
+    "@aztec/noir-contracts.js": "latest",
+    "@aztec/pxe": "latest",
+    "@aztec/stdlib": "latest",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "fake-indexeddb": "^6.0.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

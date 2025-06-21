@@ -5,7 +5,6 @@ import {
   type Wallet,
   type AccountWallet,
 } from '@aztec/aztec.js';
-import {} from '@aztec/bb.js';
 import { keccak256 } from '@aztec/foundation/crypto';
 import { EmbeddedWallet } from './embedded-wallet';
 import {
