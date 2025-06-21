@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gods Hand on Aztec</title>
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <div class="nav-title">Gods Hand</div>
+
+      <div style="display: flex; align-items: center; gap: 1rem">
+        <div id="account-display" class="account-display"></div>
+
+        <select id="test-account-number" style="display: none">
+          <option value="1">Account 1</option>
+          <option value="2">Account 2</option>
+          <option value="3">Account 3</option>
+        </select>
+        <button id="connect-test-account" type="button" style="display: none">
+          Connect Test Account
+        </button>
+        <button id="create-account" type="button" style="display: none">
+          Create Account
+        </button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <!-- Create Disaster -->
+      <div class="card">
+        <h3>Create Disaster</h3>
+        <form id="create-disaster-form" style="display: none">
+          <input
+            id="disaster-title"
+            type="text"
+            placeholder="Disaster Title"
+            required
+          />
+          <input
+            id="disaster-metadata"
+            type="text"
+            placeholder="Metadata"
+            required
+          />
+          <input
+            id="disaster-amount"
+            type="number"
+            placeholder="Estimated Amount Required"
+            required
+          />
+          <button id="create-disaster-btn" type="submit">
+            Create Disaster
+          </button>
+        </form>
+      </div>
+
+      <!-- Donate -->
+      <div class="card">
+        <h3>Donate</h3>
+        <form id="donate-form" style="display: none">
+          <input
+            id="donate-hash"
+            type="text"
+            placeholder="Disaster Hash"
+            required
+          />
+          <input
+            id="donate-amount"
+            type="number"
+            placeholder="Amount"
+            required
+          />
+          <input id="donate-chain" type="text" placeholder="Chain" required />
+          <input
+            id="donate-token"
+            type="text"
+            placeholder="Token Address"
+            required
+          />
+          <button id="donate-btn" type="submit">Donate</button>
+        </form>
+      </div>
+
+      <!-- Vote -->
+      <div class="card">
+        <h3>Vote</h3>
+        <form id="vote-form" style="display: none">
+          <input
+            id="vote-hash"
+            type="text"
+            placeholder="Disaster Hash"
+            required
+          />
+          <input
+            id="vote-org"
+            type="text"
+            placeholder="Organization Address"
+            required
+          />
+          <select id="vote-type" required>
+            <option value="">Select Vote Type</option>
+            <option value="1">Approve</option>
+            <option value="0">Reject</option>
+          </select>
+          <button id="vote-btn" type="submit">Vote</button>
+        </form>
+      </div>
+
+      <!-- Unlock Funds -->
+      <div class="card">
+        <h3>Unlock Funds</h3>
+        <form id="unlock-form" style="display: none">
+          <input
+            id="unlock-hash"
+            type="text"
+            placeholder="Disaster Hash"
+            required
+          />
+          <input
+            id="unlock-org"
+            type="text"
+            placeholder="Organization Address"
+            required
+          />
+          <input
+            id="unlock-amount"
+            type="number"
+            placeholder="Amount"
+            required
+          />
+          <button id="unlock-btn" type="submit">Unlock Funds</button>
+        </form>
+      </div>
+
+      <!-- Claim -->
+      <div class="card">
+        <h3>Claim</h3>
+        <form id="claim-form" style="display: none">
+          <input
+            id="claim-hash"
+            type="text"
+            placeholder="Disaster Hash"
+            required
+          />
+          <button id="claim-btn" type="submit">Claim</button>
+        </form>
+      </div>
+
+      <div id="status-message" class="status-message"></div>
+    </main>
+  </body>
+</html>
