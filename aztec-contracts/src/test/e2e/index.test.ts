@@ -46,28 +46,19 @@ describe("GodsHand", () => {
 
   beforeAll(async () => {
     skipSandbox = process.env.SKIP_SANDBOX === "true";
-    logger = createLogger("aztec:aztec-starter:gods-hand");
-    logger.info("Starting GodsHand test suite setup");
-
     if (!skipSandbox) {
-      logger.info("Starting sandbox instance");
       sandboxInstance = spawn("aztec", ["start", "--sandbox"], {
         detached: true,
         stdio: "ignore",
       });
       await sleep(15000);
-      logger.info("Sandbox instance started");
-    } else {
-      logger.info("Skipping sandbox startup");
     }
 
-    logger.info("GodsHand tests running.");
+    logger = createLogger("aztec:aztec-starter:voting");
+    console.log("Aztec-Starter tests running.");
 
-    logger.info("Setting up PXE");
     pxe = await setupPXE();
-    logger.info("PXE setup complete");
 
-    logger.info("Getting sponsored FPC instance");
     sponsoredFPC = await getSponsoredFPCInstance();
     await pxe.registerContract({
       instance: sponsoredFPC,
@@ -76,10 +67,8 @@ describe("GodsHand", () => {
     sponsoredPaymentMethod = new SponsoredFeePaymentMethod(
       sponsoredFPC.address
     );
-    logger.info("Sponsored FPC registered");
 
     // generate random accounts
-    logger.info("Generating 5 random accounts");
     randomAccountManagers = await Promise.all(
       (
         await generateSchnorrAccounts(5)
@@ -93,10 +82,8 @@ describe("GodsHand", () => {
     randomAddresses = await Promise.all(
       randomWallets.map(async (w) => (await w.getCompleteAddress()).address)
     );
-    logger.info(`Generated ${randomAddresses.length} random accounts`);
 
     // create default ethereum clients
-    logger.info("Setting up Ethereum clients");
     const nodeInfo = await pxe.getNodeInfo();
     const chain = createEthereumChain(
       ["http://localhost:8545"],
@@ -111,12 +98,9 @@ describe("GodsHand", () => {
     );
 
     // create portal manager
-    logger.info("Creating L1 portal manager");
     l1PortalManager = await L1FeeJuicePortalManager.new(pxe, l1Client, logger);
-    logger.info("L1 portal manager created");
 
     // Set up a wallet
-    logger.info("Creating first wallet");
     let secretKey = Fr.random();
     let salt = Fr.random();
     let schnorrAccount = await getSchnorrAccount(
@@ -129,530 +113,523 @@ describe("GodsHand", () => {
       .deploy({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .wait();
     firstWallet = await schnorrAccount.getWallet();
-    logger.info(`First wallet created: ${firstWallet.getAddress()}`);
-    logger.info("GodsHand test suite setup complete");
   });
 
   afterAll(async () => {
-    logger.info("Cleaning up GodsHand test suite");
     if (!skipSandbox) {
-      logger.info("Killing sandbox instance");
       sandboxInstance!.kill("SIGINT");
     }
-    logger.info("GodsHand test suite cleanup complete");
   });
 
-  // it("Deploys the contract", async () => {
-  //   logger.info("Starting contract deployment test");
-  //   const salt = Fr.random();
-  //   logger.info(`Using deployment salt: ${salt}`);
+  it("Deploys the contract", async () => {
+    console.log("Starting contract deployment test");
+    const salt = Fr.random();
+    console.log(`Using deployment salt: ${salt}`);
 
-  //   const GodsHandArtifact = GodsHandContractArtifact;
-  //   logger.info("Generating deployer and admin accounts");
-  //   const accounts = await Promise.all(
-  //     (
-  //       await generateSchnorrAccounts(2)
-  //     ).map(
-  //       async (a) =>
-  //         await getSchnorrAccount(pxe, a.secret, a.signingKey, a.salt)
-  //     )
-  //   );
-  //   logger.info("Generated deployer and admin accounts");
+    const GodsHandArtifact = GodsHandContractArtifact;
+    console.log("Generating deployer and admin accounts");
+    const accounts = await Promise.all(
+      (
+        await generateSchnorrAccounts(2)
+      ).map(
+        async (a) =>
+          await getSchnorrAccount(pxe, a.secret, a.signingKey, a.salt)
+      )
+    );
+    console.log("Generated deployer and admin accounts");
 
-  //   logger.info("Deploying accounts");
-  //   await Promise.all(
-  //     accounts.map((a, i) => {
-  //       logger.info(`Deploying account ${i}`);
-  //       return a
-  //         .deploy({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //         .wait();
-  //     })
-  //   );
-  //   logger.info("Accounts deployed");
+    console.log("Deploying accounts");
+    await Promise.all(
+      accounts.map((a, i) => {
+        console.log(`Deploying account ${i}`);
+        return a
+          .deploy({ fee: { paymentMethod: sponsoredPaymentMethod } })
+          .wait();
+      })
+    );
+    console.log("Accounts deployed");
 
-  //   const daWallets = await Promise.all(accounts.map((a) => a.getWallet()));
-  //   const [deployerWallet, adminWallet] = daWallets;
-  //   const [deployerAddress, adminAddress] = daWallets.map((w) =>
-  //     w.getAddress()
-  //   );
-  //   logger.info(`Deployer: ${deployerAddress}, Admin: ${adminAddress}`);
+    const daWallets = await Promise.all(accounts.map((a) => a.getWallet()));
+    const [deployerWallet, adminWallet] = daWallets;
+    const [deployerAddress, adminAddress] = daWallets.map((w) =>
+      w.getAddress()
+    );
+    console.log(`Deployer: ${deployerAddress}, Admin: ${adminAddress}`);
 
-  //   logger.info("Getting deployment parameters");
-  //   const deploymentData = await getContractInstanceFromDeployParams(
-  //     GodsHandArtifact,
-  //     {
-  //       constructorArgs: [adminAddress],
-  //       salt,
-  //       deployer: deployerWallet.getAddress(),
-  //     }
-  //   );
-  //   logger.info(`Target deployment address: ${deploymentData.address}`);
+    console.log("Getting deployment parameters");
+    const deploymentData = await getContractInstanceFromDeployParams(
+      GodsHandArtifact,
+      {
+        constructorArgs: [adminAddress],
+        salt,
+        deployer: deployerWallet.getAddress(),
+      }
+    );
+    console.log(`Target deployment address: ${deploymentData.address}`);
 
-  //   const deployer = new ContractDeployer(GodsHandArtifact, deployerWallet);
-  //   logger.info("Sending deployment transaction");
-  //   const tx = deployer.deploy(adminAddress).send({
-  //     contractAddressSalt: salt,
-  //     fee: { paymentMethod: sponsoredPaymentMethod }, // without the sponsoredFPC the deployment fails, thus confirming it works
-  //   });
+    const deployer = new ContractDeployer(GodsHandArtifact, deployerWallet);
+    console.log("Sending deployment transaction");
+    const tx = deployer.deploy(adminAddress).send({
+      contractAddressSalt: salt,
+      fee: { paymentMethod: sponsoredPaymentMethod }, // without the sponsoredFPC the deployment fails, thus confirming it works
+    });
 
-  //   const receipt = await tx.getReceipt();
-  //   logger.info(`Deployment receipt status: ${receipt.status}`);
+    const receipt = await tx.getReceipt();
+    console.log(`Deployment receipt status: ${receipt.status}`);
 
-  //   expect(receipt).toEqual(
-  //     expect.objectContaining({
-  //       status: TxStatus.PENDING,
-  //       error: "",
-  //     })
-  //   );
+    expect(receipt).toEqual(
+      expect.objectContaining({
+        status: TxStatus.PENDING,
+        error: "",
+      })
+    );
 
-  //   logger.info("Waiting for deployment to be mined");
-  //   const receiptAfterMined = await tx.wait({ wallet: deployerWallet });
-  //   logger.info(`Final deployment status: ${receiptAfterMined.status}`);
+    console.log("Waiting for deployment to be mined");
+    const receiptAfterMined = await tx.wait({ wallet: deployerWallet });
+    console.log(`Final deployment status: ${receiptAfterMined.status}`);
 
-  //   logger.info("Checking contract metadata");
-  //   expect(await pxe.getContractMetadata(deploymentData.address)).toBeDefined();
-  //   expect(
-  //     (await pxe.getContractMetadata(deploymentData.address)).contractInstance
-  //   ).toBeTruthy();
-  //   expect(receiptAfterMined).toEqual(
-  //     expect.objectContaining({
-  //       status: TxStatus.SUCCESS,
-  //     })
-  //   );
+    console.log("Checking contract metadata");
+    expect(await pxe.getContractMetadata(deploymentData.address)).toBeDefined();
+    expect(
+      (await pxe.getContractMetadata(deploymentData.address)).contractInstance
+    ).toBeTruthy();
+    expect(receiptAfterMined).toEqual(
+      expect.objectContaining({
+        status: TxStatus.SUCCESS,
+      })
+    );
 
-  //   expect(receiptAfterMined.contract.instance.address).toEqual(
-  //     deploymentData.address
-  //   );
-  //   logger.info("Contract deployment test completed successfully");
-  // });
+    expect(receiptAfterMined.contract.instance.address).toEqual(
+      deploymentData.address
+    );
+    console.log("Contract deployment test completed successfully");
+  });
 
   it("Creates a disaster and accepts donations", async () => {
-    logger.info("Starting disaster creation and donation test");
+    console.log("Starting disaster creation and donation test");
 
-    logger.info("Deploying GodsHand contract");
+    console.log("Deploying GodsHand contract");
     const contract = await GodsHandContract.deploy(
       firstWallet,
       firstWallet.getAddress()
     )
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
-    logger.info(`Contract deployed at: ${contract.address}`);
-
-    // Register contract with PXE for all wallets to use
-    logger.info("Registering contract with PXE");
-    await pxe.registerContract({
-      instance: contract.instance,
-      artifact: GodsHandContractArtifact,
-    });
-    logger.info("Contract registered with PXE");
+    console.log(`Contract deployed at: ${contract.address}`);
 
     // Create disaster (admin is agent by default)
-    logger.info("Simulating disaster creation");
+    console.log("Simulating disaster creation");
     const disasterHash = await contract.methods
       .create_disaster(new Fr(123), new Fr(456), 1000000n)
       .simulate();
-    logger.info(`Disaster hash from simulation: ${disasterHash}`);
+    console.log(`Disaster hash from simulation: ${disasterHash}`);
 
-    logger.info("Creating disaster");
+    console.log("Creating disaster");
     await contract.methods
       .create_disaster(new Fr(123), new Fr(456), 1000000n)
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .wait();
-    logger.info("Disaster created successfully");
+    console.log("Disaster created successfully");
 
     // Check initial donation count
-    logger.info("Checking initial donation count");
+    console.log("Checking initial donation count");
     let donationCount = await contract.methods
       .get_donation_count(disasterHash)
       .simulate();
-    logger.info(`Initial donation count: ${donationCount}`);
+    console.log(`Initial donation count: ${donationCount}`);
     expect(donationCount).toBe(0n);
 
     // Make donation using the donor's wallet
-    const donor = randomWallets[0];
-    logger.info(`Using donor wallet: ${donor.getAddress()}`);
-    const contractWithDonor = contract.withWallet(donor);
+    // const donor = randomWallets[0];
+    console.log(`Using donor wallet: ${firstWallet.getAddress()}`);
+    const contractWithDonor = contract.withWallet(firstWallet);
 
-    logger.info("Making donation");
+    console.log("Making donation");
     await contractWithDonor.methods
       .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .wait();
-    logger.info("Donation completed");
+    console.log("Donation completed");
 
     // Check donation count increased
-    logger.info("Checking donation count after donation");
+    console.log("Checking donation count after donation");
     donationCount = await contract.methods
       .get_donation_count(disasterHash)
       .simulate();
-    logger.info(`Final donation count: ${donationCount}`);
+    console.log(`Final donation count: ${donationCount}`);
     expect(donationCount).toBe(1n);
-    logger.info("Disaster creation and donation test completed successfully");
+    console.log("Disaster creation and donation test completed successfully");
   });
 
-  // it("Should fail when trying to donate twice", async () => {
-  //   logger.info("Starting duplicate donation test");
+  it("Should fail when trying to donate twice", async () => {
+    console.log("Starting duplicate donation test");
 
-  //   logger.info("Deploying GodsHand contract");
-  //   const contract = await GodsHandContract.deploy(
-  //     firstWallet,
-  //     firstWallet.getAddress()
-  //   )
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .deployed();
-  //   logger.info(`Contract deployed at: ${contract.address}`);
+    console.log("Deploying GodsHand contract");
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+    console.log(`Contract deployed at: ${contract.address}`);
 
-  //   // Register contract with PXE for all wallets to use
-  //   logger.info("Registering contract with PXE");
-  //   await pxe.registerContract({
-  //     instance: contract.instance,
-  //     artifact: GodsHandContractArtifact,
-  //   });
+    // Register contract with PXE for all wallets to use
+    console.log("Registering contract with PXE");
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
-  //   logger.info("Simulating disaster creation");
-  //   const disasterHash = await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .simulate();
-  //   logger.info(`Disaster hash: ${disasterHash}`);
+    console.log("Simulating disaster creation");
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+    console.log(`Disaster hash: ${disasterHash}`);
 
-  //   // Create disaster
-  //   logger.info("Creating disaster");
-  //   await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Disaster created");
+    // Create disaster
+    console.log("Creating disaster");
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Disaster created");
 
-  //   const donor = randomWallets[0];
-  //   logger.info(`Using donor wallet: ${donor.getAddress()}`);
-  //   const contractWithDonor = contract.withWallet(donor);
+    // const donor = randomWallets[0];
+    console.log(`Using donor wallet: ${firstWallet.getAddress()}`);
+    const contractWithDonor = contract.withWallet(firstWallet);
 
-  //   // First donation
-  //   logger.info("Making first donation");
-  //   await contractWithDonor.methods
-  //     .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("First donation completed");
+    // First donation
+    console.log("Making first donation");
+    await contractWithDonor.methods
+      .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("First donation completed");
 
-  //   logger.info("Checking donation count after first donation");
-  //   const donationCount = await contract.methods
-  //     .get_donation_count(disasterHash)
-  //     .simulate();
-  //   logger.info(`Donation count: ${donationCount}`);
-  //   expect(donationCount).toBe(1n);
+    console.log("Checking donation count after first donation");
+    const donationCount = await contract.methods
+      .get_donation_count(disasterHash)
+      .simulate();
+    console.log(`Donation count: ${donationCount}`);
+    expect(donationCount).toBe(1n);
 
-  //   // We try donating again, but our TX is dropped due to trying to emit duplicate nullifiers
-  //   // first confirm that it fails simulation
-  //   logger.info("Attempting second donation (should fail)");
-  //   await expect(
-  //     contractWithDonor.methods
-  //       .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
-  //       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //       .wait()
-  //   ).rejects.toThrow(/Existing nullifier/);
-  //   logger.info("Second donation correctly failed with nullifier error");
+    // We try donating again, but our TX is dropped due to trying to emit duplicate nullifiers
+    // first confirm that it fails simulation
+    console.log("Attempting second donation (should fail)");
+    await expect(
+      contractWithDonor.methods
+        .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+        .wait()
+    ).rejects.toThrow(/Existing nullifier/);
+    console.log("Second donation correctly failed with nullifier error");
 
-  //   // if we skip simulation before submitting the tx,
-  //   // tx will be included in a block but with app logic reverted
-  //   logger.info(
-  //     "Attempting second donation without simulation (should also fail)"
-  //   );
-  //   await expect(
-  //     contractWithDonor.methods
-  //       .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
-  //       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //       .wait()
-  //   ).rejects.toThrow(/Existing nullifier/);
-  //   logger.info("Second donation without simulation also correctly failed");
-  //   logger.info("Duplicate donation test completed successfully");
-  // });
+    // if we skip simulation before submitting the tx,
+    // tx will be included in a block but with app logic reverted
+    console.log(
+      "Attempting second donation without simulation (should also fail)"
+    );
+    await expect(
+      contractWithDonor.methods
+        .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+        .wait()
+    ).rejects.toThrow(/Existing nullifier/);
+    console.log("Second donation without simulation also correctly failed");
+    console.log("Duplicate donation test completed successfully");
+  });
 
-  // it("Creates a disaster and accepts votes", async () => {
-  //   logger.info("Starting disaster creation and voting test");
+  it("Creates a disaster and accepts votes", async () => {
+    console.log("Starting disaster creation and voting test");
 
-  //   logger.info("Deploying GodsHand contract");
-  //   const contract = await GodsHandContract.deploy(
-  //     firstWallet,
-  //     firstWallet.getAddress()
-  //   )
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .deployed();
-  //   logger.info(`Contract deployed at: ${contract.address}`);
+    console.log("Deploying GodsHand contract");
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+    console.log(`Contract deployed at: ${contract.address}`);
 
-  //   // Register contract with PXE for all wallets to use
-  //   logger.info("Registering contract with PXE");
-  //   await pxe.registerContract({
-  //     instance: contract.instance,
-  //     artifact: GodsHandContractArtifact,
-  //   });
+    // Register contract with PXE for all wallets to use
+    console.log("Registering contract with PXE");
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
-  //   // Create disaster
-  //   logger.info("Simulating disaster creation");
-  //   const disasterHash = await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .simulate();
-  //   logger.info(`Disaster hash: ${disasterHash}`);
+    // Create disaster
+    console.log("Simulating disaster creation");
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+    console.log(`Disaster hash: ${disasterHash}`);
 
-  //   logger.info("Creating disaster");
-  //   await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Disaster created");
+    console.log("Creating disaster");
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Disaster created");
 
-  //   // Check initial vote count
-  //   logger.info("Checking initial vote count");
-  //   let voteCount = await contract.methods
-  //     .get_vote_count(disasterHash)
-  //     .simulate();
-  //   logger.info(`Initial vote count: ${voteCount}`);
-  //   expect(voteCount).toBe(0n);
+    // Check initial vote count
+    console.log("Checking initial vote count");
+    let voteCount = await contract.methods
+      .get_vote_count(disasterHash)
+      .simulate();
+    console.log(`Initial vote count: ${voteCount}`);
+    expect(voteCount).toBe(0n);
 
-  //   // Vote
-  //   const voter = randomWallets[0];
-  //   const org = randomAddresses[1];
-  //   logger.info(`Voter: ${voter.getAddress()}, Organization: ${org}`);
-  //   const contractWithVoter = contract.withWallet(voter);
+    // Vote
+    // const voter = randomWallets[0];
+    // const org = randomAddresses[1];
+    console.log(
+      `Voter: ${firstWallet.getAddress()}, Organization: ${firstWallet.getAddress()}`
+    );
+    const contractWithVoter = contract.withWallet(firstWallet);
 
-  //   logger.info("Casting vote");
-  //   await contractWithVoter.methods
-  //     .vote(disasterHash, org, 1)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Vote cast successfully");
+    console.log("Casting vote");
+    await contractWithVoter.methods
+      .vote(disasterHash, firstWallet.getAddress(), 1)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Vote cast successfully");
 
-  //   // Check vote count increased
-  //   logger.info("Checking vote count after voting");
-  //   voteCount = await contract.methods.get_vote_count(disasterHash).simulate();
-  //   logger.info(`Final vote count: ${voteCount}`);
-  //   expect(voteCount).toBe(1n);
-  //   logger.info("Disaster creation and voting test completed successfully");
-  // });
+    // Check vote count increased
+    console.log("Checking vote count after voting");
+    voteCount = await contract.methods.get_vote_count(disasterHash).simulate();
+    console.log(`Final vote count: ${voteCount}`);
+    expect(voteCount).toBe(1n);
+    console.log("Disaster creation and voting test completed successfully");
+  });
 
-  // it("Should fail when trying to vote twice", async () => {
-  //   logger.info("Starting duplicate voting test");
+  it("Should fail when trying to vote twice", async () => {
+    console.log("Starting duplicate voting test");
 
-  //   logger.info("Deploying GodsHand contract");
-  //   const contract = await GodsHandContract.deploy(
-  //     firstWallet,
-  //     firstWallet.getAddress()
-  //   )
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .deployed();
-  //   logger.info(`Contract deployed at: ${contract.address}`);
+    console.log("Deploying GodsHand contract");
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+    console.log(`Contract deployed at: ${contract.address}`);
 
-  //   // Register contract with PXE for all wallets to use
-  //   logger.info("Registering contract with PXE");
-  //   await pxe.registerContract({
-  //     instance: contract.instance,
-  //     artifact: GodsHandContractArtifact,
-  //   });
+    // Register contract with PXE for all wallets to use
+    console.log("Registering contract with PXE");
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
-  //   // Create disaster
-  //   logger.info("Simulating disaster creation");
-  //   const disasterHash = await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .simulate();
-  //   logger.info(`Disaster hash: ${disasterHash}`);
+    // Create disaster
+    console.log("Simulating disaster creation");
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+    console.log(`Disaster hash: ${disasterHash}`);
 
-  //   logger.info("Creating disaster");
-  //   await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Disaster created");
+    console.log("Creating disaster");
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Disaster created");
 
-  //   const voter = randomWallets[0];
-  //   const org = randomAddresses[1];
-  //   logger.info(`Voter: ${voter.getAddress()}, Organization: ${org}`);
-  //   const contractWithVoter = contract.withWallet(voter);
+    // const voter = randomWallets[0];
+    // const org = randomAddresses[1];
+    console.log(
+      `Voter: ${firstWallet.getAddress()}, Organization: ${firstWallet.getAddress()}`
+    );
+    const contractWithVoter = contract.withWallet(firstWallet);
 
-  //   // First vote
-  //   logger.info("Casting first vote");
-  //   await contractWithVoter.methods
-  //     .vote(disasterHash, org, 1)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("First vote cast successfully");
+    // First vote
+    console.log("Casting first vote");
+    await contractWithVoter.methods
+      .vote(disasterHash, firstWallet.getAddress(), 1)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("First vote cast successfully");
 
-  //   logger.info("Checking vote count after first vote");
-  //   const voteCount = await contract.methods
-  //     .get_vote_count(disasterHash)
-  //     .simulate();
-  //   logger.info(`Vote count: ${voteCount}`);
-  //   expect(voteCount).toBe(1n);
+    console.log("Checking vote count after first vote");
+    const voteCount = await contract.methods
+      .get_vote_count(disasterHash)
+      .simulate();
+    console.log(`Vote count: ${voteCount}`);
+    expect(voteCount).toBe(1n);
 
-  //   // We try voting again, but our TX is dropped due to trying to emit duplicate nullifiers
-  //   logger.info("Attempting second vote (should fail)");
-  //   await expect(
-  //     contractWithVoter.methods
-  //       .vote(disasterHash, org, 2)
-  //       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //       .wait()
-  //   ).rejects.toThrow(/Existing nullifier/);
-  //   logger.info("Second vote correctly failed with nullifier error");
-  //   logger.info("Duplicate voting test completed successfully");
-  // });
+    // We try voting again, but our TX is dropped due to trying to emit duplicate nullifiers
+    console.log("Attempting second vote (should fail)");
+    await expect(
+      contractWithVoter.methods
+        .vote(disasterHash, firstWallet.getAddress(), 2)
+        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+        .wait()
+    ).rejects.toThrow(/Existing nullifier/);
+    console.log("Second vote correctly failed with nullifier error");
+    console.log("Duplicate voting test completed successfully");
+  });
 
-  // it("Tests fund management workflow", async () => {
-  //   logger.info("Starting fund management workflow test");
+  it("Tests fund management workflow", async () => {
+    console.log("Starting fund management workflow test");
 
-  //   logger.info("Deploying GodsHand contract");
-  //   const contract = await GodsHandContract.deploy(
-  //     firstWallet,
-  //     firstWallet.getAddress()
-  //   )
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .deployed();
-  //   logger.info(`Contract deployed at: ${contract.address}`);
+    console.log("Deploying GodsHand contract");
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+    console.log(`Contract deployed at: ${contract.address}`);
 
-  //   // Register contract with PXE for all wallets to use
-  //   logger.info("Registering contract with PXE");
-  //   await pxe.registerContract({
-  //     instance: contract.instance,
-  //     artifact: GodsHandContractArtifact,
-  //   });
+    // Register contract with PXE for all wallets to use
+    console.log("Registering contract with PXE");
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
-  //   // Create disaster
-  //   logger.info("Simulating disaster creation");
-  //   const disasterHash = await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .simulate();
-  //   logger.info(`Disaster hash: ${disasterHash}`);
+    // Create disaster
+    console.log("Simulating disaster creation");
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+    console.log(`Disaster hash: ${disasterHash}`);
 
-  //   logger.info("Creating disaster");
-  //   await contract.methods
-  //     .create_disaster(new Fr(123), new Fr(456), 1000000n)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Disaster created");
+    const contractWithAdmin = contract.withWallet(firstWallet);
 
-  //   const org = randomAddresses[0];
-  //   logger.info(`Organization address: ${org}`);
+    console.log("Creating disaster");
+    await contractWithAdmin.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Disaster created");
 
-  //   // Check initial unlocked funds
-  //   logger.info("Checking initial unlocked funds");
-  //   let unlockedFunds = await contract.methods
-  //     .get_unlocked_funds(disasterHash, org)
-  //     .simulate();
-  //   logger.info(`Initial unlocked funds: ${unlockedFunds}`);
-  //   expect(unlockedFunds).toBe(0n);
+    const org = randomAddresses[0];
+    console.log(`Organization address: ${org}`);
 
-  //   // Unlock funds (admin is agent by default)
-  //   logger.info("Unlocking funds");
-  //   await contract.methods
-  //     .unlock_funds(disasterHash, org, 5000n)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Funds unlocked");
+    // Check initial unlocked funds
+    console.log("Checking initial unlocked funds");
+    let unlockedFunds = await contractWithAdmin.methods
+      .get_unlocked_funds(disasterHash, org)
+      .simulate();
+    console.log(`Initial unlocked funds: ${unlockedFunds}`);
+    expect(unlockedFunds).toBe(0n);
 
-  //   // Check unlocked funds
-  //   logger.info("Checking unlocked funds after unlock");
-  //   unlockedFunds = await contract.methods
-  //     .get_unlocked_funds(disasterHash, org)
-  //     .simulate();
-  //   logger.info(`Unlocked funds after unlock: ${unlockedFunds}`);
-  //   expect(unlockedFunds).toBe(5000n);
+    // Unlock funds (admin is agent by default)
+    console.log("Unlocking funds");
+    await contractWithAdmin.methods
+      .unlock_funds(disasterHash, org, 5000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Funds unlocked");
 
-  //   // Claim funds
-  //   const orgWallet = randomWallets[0]; // org wallet
-  //   logger.info(`Organization wallet: ${orgWallet.getAddress()}`);
-  //   const contractWithOrg = contract.withWallet(orgWallet);
+    // Check unlocked funds
+    console.log("Checking unlocked funds after unlock");
+    unlockedFunds = await contractWithAdmin.methods
+      .get_unlocked_funds(disasterHash, org)
+      .simulate();
+    console.log(`Unlocked funds after unlock: ${unlockedFunds}`);
+    expect(unlockedFunds).toBe(5000n);
 
-  //   logger.info("Claiming funds");
-  //   await contractWithOrg.methods
-  //     .claim(disasterHash)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Funds claimed");
+    // Claim funds
+    // const orgWallet = randomWallets[0]; // org wallet
+    console.log(`Organization wallet: ${firstWallet.getAddress()}`);
+    const contractWithOrg = contract.withWallet(firstWallet);
 
-  //   // Check funds were claimed
-  //   logger.info("Checking unlocked funds after claim");
-  //   unlockedFunds = await contract.methods
-  //     .get_unlocked_funds(disasterHash, org)
-  //     .simulate();
-  //   logger.info(`Unlocked funds after claim: ${unlockedFunds}`);
-  //   expect(unlockedFunds).toBe(0n);
-  //   logger.info("Fund management workflow test completed successfully");
-  // });
+    console.log("Claiming funds");
+    await contractWithOrg.methods
+      .claim(disasterHash)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Funds claimed");
 
-  // it("Tests agent management", async () => {
-  //   logger.info("Starting agent management test");
+    // Check funds were claimed
+    console.log("Checking unlocked funds after claim");
+    unlockedFunds = await contract.methods
+      .get_unlocked_funds(disasterHash, org)
+      .simulate();
+    console.log(`Unlocked funds after claim: ${unlockedFunds}`);
+    expect(unlockedFunds).toBe(0n);
+    console.log("Fund management workflow test completed successfully");
+  });
 
-  //   logger.info("Deploying GodsHand contract");
-  //   const contract = await GodsHandContract.deploy(
-  //     firstWallet,
-  //     firstWallet.getAddress()
-  //   )
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .deployed();
-  //   logger.info(`Contract deployed at: ${contract.address}`);
+  it("Tests agent management", async () => {
+    console.log("Starting agent management test");
 
-  //   // Register contract with PXE for all wallets to use
-  //   logger.info("Registering contract with PXE");
-  //   await pxe.registerContract({
-  //     instance: contract.instance,
-  //     artifact: GodsHandContractArtifact,
-  //   });
+    console.log("Deploying GodsHand contract");
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+    console.log(`Contract deployed at: ${contract.address}`);
 
-  //   const agent = randomAddresses[0];
-  //   logger.info(`Agent address: ${agent}`);
+    // Register contract with PXE for all wallets to use
+    console.log("Registering contract with PXE");
+    await pxe.registerContract({
+      instance: contract.instance,
+      artifact: GodsHandContractArtifact,
+    });
 
-  //   // Check agent is not authorized initially
-  //   logger.info("Checking initial agent authorization");
-  //   let isAgent = await contract.methods.is_agent(agent).simulate();
-  //   logger.info(`Initial agent authorization: ${isAgent}`);
-  //   expect(isAgent).toBe(false);
+    const agent = randomAddresses[0];
+    console.log(`Agent address: ${agent}`);
 
-  //   // Add agent
-  //   logger.info("Adding agent");
-  //   await contract.methods
-  //     .add_agent(agent)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Agent added");
+    // Check agent is not authorized initially
+    console.log("Checking initial agent authorization");
+    let isAgent = await contract.methods.is_agent(agent).simulate();
+    console.log(`Initial agent authorization: ${isAgent}`);
+    expect(isAgent).toBe(false);
 
-  //   // Check agent is now authorized
-  //   logger.info("Checking agent authorization after adding");
-  //   isAgent = await contract.methods.is_agent(agent).simulate();
-  //   logger.info(`Agent authorization after adding: ${isAgent}`);
-  //   expect(isAgent).toBe(true);
+    // Add agent
+    console.log("Adding agent");
+    await contract.methods
+      .add_agent(agent)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Agent added");
 
-  //   // Agent should be able to create disaster
-  //   const agentWallet = randomWallets[0];
-  //   logger.info(`Agent wallet: ${agentWallet.getAddress()}`);
-  //   const contractWithAgent = contract.withWallet(agentWallet);
+    // Check agent is now authorized
+    console.log("Checking agent authorization after adding");
+    isAgent = await contract.methods.is_agent(agent).simulate();
+    console.log(`Agent authorization after adding: ${isAgent}`);
+    expect(isAgent).toBe(true);
 
-  //   logger.info("Agent simulating disaster creation");
-  //   const disasterHash = await contractWithAgent.methods
-  //     .create_disaster(new Fr(789), new Fr(101112), 2000000n)
-  //     .simulate();
-  //   logger.info(`Disaster hash from agent simulation: ${disasterHash}`);
+    // Agent should be able to create disaster
+    // const agentWallet = randomWallets[0];
+    console.log(`Agent wallet: ${firstWallet.getAddress()}`);
+    const contractWithAgent = contract.withWallet(firstWallet);
 
-  //   logger.info("Agent creating disaster");
-  //   await contractWithAgent.methods
-  //     .create_disaster(new Fr(789), new Fr(101112), 2000000n)
-  //     .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-  //     .wait();
-  //   logger.info("Disaster created by agent");
+    console.log("Agent simulating disaster creation");
+    const disasterHash = await contractWithAgent.methods
+      .create_disaster(new Fr(789), new Fr(101112), 2000000n)
+      .simulate();
+    console.log(`Disaster hash from agent simulation: ${disasterHash}`);
 
-  //   // Verify disaster was created
-  //   logger.info("Verifying disaster information");
-  //   const disasterInfo = await contract.methods
-  //     .get_disaster_info(disasterHash)
-  //     .simulate();
-  //   logger.info(`Disaster title: ${disasterInfo.title}`);
-  //   logger.info(`Disaster metadata: ${disasterInfo.metadata}`);
-  //   logger.info(`Disaster amount: ${disasterInfo.amount}`);
-  //   logger.info(`Disaster active: ${disasterInfo.active}`);
+    console.log("Agent creating disaster");
+    await contractWithAgent.methods
+      .create_disaster(new Fr(789), new Fr(101112), 2000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    console.log("Disaster created by agent");
 
-  //   expect(disasterInfo.title).toEqual(new Fr(789));
-  //   expect(disasterInfo.metadata).toEqual(new Fr(101112));
-  //   expect(disasterInfo.amount).toBe(2000000n);
-  //   expect(disasterInfo.active).toBe(true);
-  //   logger.info("Agent management test completed successfully");
-  // });
+    // Verify disaster was created
+    console.log("Verifying disaster information");
+    const disasterInfo = await contract.methods
+      .get_disaster_info(disasterHash)
+      .simulate();
+    console.log(`Disaster title: ${disasterInfo.title}`);
+    console.log(`Disaster metadata: ${disasterInfo.metadata}`);
+    console.log(`Disaster amount: ${disasterInfo.amount}`);
+    console.log(`Disaster active: ${disasterInfo.active}`);
+
+    expect(disasterInfo.title).toEqual(789n);
+    expect(disasterInfo.metadata).toEqual(101112n);
+    expect(disasterInfo.amount).toBe(2000000n);
+    expect(disasterInfo.active).toBe(true);
+    console.log("Agent management test completed successfully");
+  });
 });
 
 // describe("Empty test", () => {
