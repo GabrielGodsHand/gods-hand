@@ -12,8 +12,7 @@ pub contract GodsHand {
 
     #[derive(Serialize)]
     pub struct DisasterInfo {
-        title: Field,
-        metadata: Field,
+        hash: Field,
         amount: u64,
         active: bool,
     }
@@ -27,8 +26,6 @@ pub contract GodsHand {
         vote_threshold: PublicMutable<u64, Context>,
 
         // Disaster details
-        disaster_titles: Map<Field, PublicMutable<Field, Context>, Context>,
-        disaster_metadata: Map<Field, PublicMutable<Field, Context>, Context>,
         disaster_amounts: Map<Field, PublicMutable<u64, Context>, Context>,
         disaster_active: Map<Field, PublicMutable<bool, Context>, Context>,
 
@@ -55,20 +52,11 @@ pub contract GodsHand {
     }
 
     #[public]
-    fn create_disaster(title: Field, metadata: Field, estimated_amount_required: u64) -> Field {
+    fn create_disaster(disaster_hash: Field, estimated_amount_required: u64) -> Field {
         let caller = context.msg_sender();
         assert(storage.agent.read().eq(caller), "Only agent can create disasters");
         assert(estimated_amount_required > 0, "Estimated amount must be greater than 0");
 
-        let disaster_hash = std::hash::pedersen_hash([
-            title,
-            metadata,
-            estimated_amount_required as Field,
-            context.block_number() as Field,
-        ]);
-
-        storage.disaster_titles.at(disaster_hash).write(title);
-        storage.disaster_metadata.at(disaster_hash).write(metadata);
         storage.disaster_amounts.at(disaster_hash).write(estimated_amount_required);
         storage.disaster_active.at(disaster_hash).write(true);
         storage.total_donations.at(disaster_hash).write(0);
@@ -223,23 +211,10 @@ pub contract GodsHand {
     #[view]
     fn get_disaster_info(disaster_hash: Field) -> DisasterInfo {
         DisasterInfo {
-            title: storage.disaster_titles.at(disaster_hash).read(),
-            metadata: storage.disaster_metadata.at(disaster_hash).read(),
+            hash: disaster_hash,
             amount: storage.disaster_amounts.at(disaster_hash).read(),
             active: storage.disaster_active.at(disaster_hash).read(),
         }
-    }
-
-    #[public]
-    #[view]
-    fn get_disaster_title(disaster_hash: Field) -> Field {
-        storage.disaster_titles.at(disaster_hash).read()
-    }
-
-    #[public]
-    #[view]
-    fn get_disaster_metadata(disaster_hash: Field) -> Field {
-        storage.disaster_metadata.at(disaster_hash).read()
     }
 
     #[public]

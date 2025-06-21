@@ -2,13 +2,13 @@
 // Copyright 2024 Aztec Labs.
 pragma solidity >=0.8.27;
 
-import {Errors} from "@aztec/governance/libraries/Errors.sol";
-import {Timestamp} from "@aztec/shared/libraries/TimeMath.sol";
+import {Errors} from "./Errors.sol";
+import {Timestamp} from "../../shared/libraries/TimeMath.sol";
 import {SafeCast} from "@oz/utils/math/SafeCast.sol";
 import {Checkpoints} from "@oz/utils/structs/Checkpoints.sol";
 
 struct User {
-  Checkpoints.Trace224 checkpoints;
+    Checkpoints.Trace224 checkpoints;
 }
 
 /**
@@ -19,37 +19,53 @@ struct User {
  * by then.
  */
 library UserLib {
-  using Checkpoints for Checkpoints.Trace224;
-  using SafeCast for uint256;
+    using Checkpoints for Checkpoints.Trace224;
+    using SafeCast for uint256;
 
-  function add(User storage _self, uint256 _amount) internal returns (uint256, uint256) {
-    uint224 current = _self.checkpoints.latest();
-    if (_amount == 0) {
-      return (current, current);
+    function add(
+        User storage _self,
+        uint256 _amount
+    ) internal returns (uint256, uint256) {
+        uint224 current = _self.checkpoints.latest();
+        if (_amount == 0) {
+            return (current, current);
+        }
+        uint224 amount = _amount.toUint224();
+        _self.checkpoints.push(block.timestamp.toUint32(), current + amount);
+        return (current, current + amount);
     }
-    uint224 amount = _amount.toUint224();
-    _self.checkpoints.push(block.timestamp.toUint32(), current + amount);
-    return (current, current + amount);
-  }
 
-  function sub(User storage _self, uint256 _amount) internal returns (uint256, uint256) {
-    uint224 current = _self.checkpoints.latest();
-    if (_amount == 0) {
-      return (current, current);
+    function sub(
+        User storage _self,
+        uint256 _amount
+    ) internal returns (uint256, uint256) {
+        uint224 current = _self.checkpoints.latest();
+        if (_amount == 0) {
+            return (current, current);
+        }
+        uint224 amount = _amount.toUint224();
+        require(
+            current >= amount,
+            Errors.Governance__InsufficientPower(msg.sender, current, amount)
+        );
+        _self.checkpoints.push(block.timestamp.toUint32(), current - amount);
+        return (current, current - amount);
     }
-    uint224 amount = _amount.toUint224();
-    require(current >= amount, Errors.Governance__InsufficientPower(msg.sender, current, amount));
-    _self.checkpoints.push(block.timestamp.toUint32(), current - amount);
-    return (current, current - amount);
-  }
 
-  function powerNow(User storage _self) internal view returns (uint256) {
-    return _self.checkpoints.latest();
-  }
+    function powerNow(User storage _self) internal view returns (uint256) {
+        return _self.checkpoints.latest();
+    }
 
-  function powerAt(User storage _self, Timestamp _time) internal view returns (uint256) {
-    // If not in the past, the values are not stable. We disallow using it to avoid potential misuse.
-    require(_time < Timestamp.wrap(block.timestamp), Errors.Governance__UserLib__NotInPast());
-    return _self.checkpoints.upperLookup(Timestamp.unwrap(_time).toUint32());
-  }
+    function powerAt(
+        User storage _self,
+        Timestamp _time
+    ) internal view returns (uint256) {
+        // If not in the past, the values are not stable. We disallow using it to avoid potential misuse.
+        require(
+            _time < Timestamp.wrap(block.timestamp),
+            Errors.Governance__UserLib__NotInPast()
+        );
+        return
+            _self.checkpoints.upperLookup(Timestamp.unwrap(_time).toUint32());
+    }
 }

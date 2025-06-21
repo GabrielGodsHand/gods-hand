@@ -2,12 +2,12 @@
 // Copyright 2024 Aztec Labs.
 pragma solidity >=0.8.27;
 
-import {IPayload} from "@aztec/governance/interfaces/IPayload.sol";
+import {IPayload} from "./IPayload.sol";
 
 interface IProposerPayload {
-  function getOriginalPayload() external view returns (IPayload);
+    function getOriginalPayload() external view returns (IPayload);
 
-  function getActions() external view returns (IPayload.Action[] memory);
+    function getActions() external view returns (IPayload.Action[] memory);
 
-  function amIValid() external view returns (bool);
+    function amIValid() external view returns (bool);
 }

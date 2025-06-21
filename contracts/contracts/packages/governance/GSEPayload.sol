@@ -2,8 +2,8 @@
 // Copyright 2024 Aztec Labs.
 pragma solidity >=0.8.27;
 
-import {IGSE} from "@aztec/governance/GSE.sol";
-import {Errors} from "@aztec/governance/libraries/Errors.sol";
+import {IGSE} from "./GSE.sol";
+import {Errors} from "./libraries/Errors.sol";
 import {IPayload} from "./interfaces/IPayload.sol";
 import {IProposerPayload} from "./interfaces/IProposerPayload.sol";
 
@@ -21,44 +21,65 @@ import {IProposerPayload} from "./interfaces/IProposerPayload.sol";
  *          attesters.
  */
 contract GSEPayload is IProposerPayload {
-  IPayload public immutable ORIGINAL;
-  IGSE public immutable GSE;
+    IPayload public immutable ORIGINAL;
+    IGSE public immutable GSE;
 
-  constructor(IPayload _originalPayloadProposal, IGSE _gse) {
-    ORIGINAL = _originalPayloadProposal;
-    GSE = _gse;
-  }
-
-  function getOriginalPayload() external view override(IProposerPayload) returns (IPayload) {
-    return ORIGINAL;
-  }
-
-  function getActions() external view override(IProposerPayload) returns (IPayload.Action[] memory) {
-    IPayload.Action[] memory originalActions = ORIGINAL.getActions();
-    IPayload.Action[] memory actions = new IPayload.Action[](originalActions.length + 1);
-
-    for (uint256 i = 0; i < originalActions.length; i++) {
-      actions[i] = originalActions[i];
+    constructor(IPayload _originalPayloadProposal, IGSE _gse) {
+        ORIGINAL = _originalPayloadProposal;
+        GSE = _gse;
     }
 
-    actions[originalActions.length] = IPayload.Action({
-      target: address(this),
-      data: abi.encodeWithSelector(GSEPayload.amIValid.selector)
-    });
+    function getOriginalPayload()
+        external
+        view
+        override(IProposerPayload)
+        returns (IPayload)
+    {
+        return ORIGINAL;
+    }
 
-    return actions;
-  }
+    function getActions()
+        external
+        view
+        override(IProposerPayload)
+        returns (IPayload.Action[] memory)
+    {
+        IPayload.Action[] memory originalActions = ORIGINAL.getActions();
+        IPayload.Action[] memory actions = new IPayload.Action[](
+            originalActions.length + 1
+        );
 
-  /**
-   * @notice We see the proposal as valid if after it the canonical have effectively >2/3 of stake
-   */
-  function amIValid() external view override(IProposerPayload) returns (bool) {
-    uint256 totalSupply = GSE.totalSupply();
-    address canonical = GSE.getCanonical();
-    address magicCanonical = GSE.getCanonicalMagicAddress();
-    uint256 supplyOfInstance = GSE.supplyOf(canonical) + GSE.supplyOf(magicCanonical);
+        for (uint256 i = 0; i < originalActions.length; i++) {
+            actions[i] = originalActions[i];
+        }
 
-    require(supplyOfInstance > totalSupply * 2 / 3, Errors.GovernanceProposer__GSEPayloadInvalid());
-    return true;
-  }
+        actions[originalActions.length] = IPayload.Action({
+            target: address(this),
+            data: abi.encodeWithSelector(GSEPayload.amIValid.selector)
+        });
+
+        return actions;
+    }
+
+    /**
+     * @notice We see the proposal as valid if after it the canonical have effectively >2/3 of stake
+     */
+    function amIValid()
+        external
+        view
+        override(IProposerPayload)
+        returns (bool)
+    {
+        uint256 totalSupply = GSE.totalSupply();
+        address canonical = GSE.getCanonical();
+        address magicCanonical = GSE.getCanonicalMagicAddress();
+        uint256 supplyOfInstance = GSE.supplyOf(canonical) +
+            GSE.supplyOf(magicCanonical);
+
+        require(
+            supplyOfInstance > (totalSupply * 2) / 3,
+            Errors.GovernanceProposer__GSEPayloadInvalid()
+        );
+        return true;
+    }
 }
