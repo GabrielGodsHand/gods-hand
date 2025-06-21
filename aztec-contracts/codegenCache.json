@@ -1,10 +1,6 @@
 {
-  "godshand-AnonymousDonations.json": {
-    "contractName": "AnonymousDonations",
-    "hash": "987d8c150d47abd3ac04858ea855f4f4c4fd0d079acf103fe9454c59ca172bde"
-  },
   "godshand-GodsHand.json": {
     "contractName": "GodsHand",
-    "hash": "30a3548c9815ab414cf0fb04a4a2cca95fd78415d2a82d623875d59bb806ce98"
+    "hash": "821a80572b80a77f9f071989f954c37f81501f2cb86bb2cbaa224f87ef704c08"
   }
 }

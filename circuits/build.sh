@@ -6,6 +6,6 @@ set -e
 # cd ..
 
 nargo compile
-bb write_vk --oracle_hash keccak -b ./target/main.json -o ./target
+bb write_vk --oracle_hash keccak -b ./target/zkpassport.json -o ./target --scheme ultra_honk
 
 echo "Done"

@@ -50,7 +50,7 @@ pub contract GodsHand {
 
     #[public]
     #[initializer]
-    fn constructor(admin: AztecAddress) {
+    fn constructor(admin: Field) {
         assert(!admin.is_zero(), "Invalid admin address");
         storage.admin.write(admin);
         storage.agents.at(admin).write(true);
