@@ -1,4 +1,4 @@
-import { ZKPassport } from "@zkpassport/sdk";
+import { QueryResult, QueryResultErrors, ZKPassport } from "@zkpassport/sdk";
 
 export class ZKPassportService {
   private zkPassport: ZKPassport;
@@ -9,7 +9,14 @@ export class ZKPassportService {
 
   async verifyAge(minAge: number = 18): Promise<{
     url: string;
-    onResult: (callback: (data: { verified: boolean; result?: any }) => void) => void;
+    onResult: (
+      callback: (data: {
+        uniqueIdentifier: string | undefined;
+        verified: boolean;
+        result: QueryResult;
+        queryResultErrors?: QueryResultErrors;
+      }) => void
+    ) => void;
   }> {
     try {
       const queryBuilder = await this.zkPassport.request({
@@ -30,11 +37,18 @@ export class ZKPassportService {
 
   async verifyAgeForVoting(): Promise<{
     url: string;
-    onResult: (callback: (data: { verified: boolean; result?: any }) => void) => void;
+    onResult: (
+      callback: (data: {
+        uniqueIdentifier: string | undefined;
+        verified: boolean;
+        result: QueryResult;
+        queryResultErrors?: QueryResultErrors;
+      }) => void
+    ) => void;
   }> {
     return this.verifyAge(18);
   }
 }
 
 // Export a default instance
-export const zkPassportService = new ZKPassportService(); 
+export const zkPassportService = new ZKPassportService();
