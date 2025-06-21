@@ -1,7 +1,7 @@
 import {
-  EasyPrivateVotingContractArtifact,
-  EasyPrivateVotingContract,
-} from "../../artifacts/EasyPrivateVoting.js";
+  GodsHandContractArtifact,
+  GodsHandContract,
+} from "../../artifacts/GodsHand.js";
 import {
   AccountManager,
   AccountWallet,
@@ -28,7 +28,7 @@ import { deriveSigningKey } from "@aztec/stdlib/keys";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-describe("Voting", () => {
+describe("GodsHand", () => {
   let pxe: PXE;
   let firstWallet: AccountWallet;
   let accounts: CompleteAddress[] = [];
@@ -54,8 +54,8 @@ describe("Voting", () => {
       await sleep(15000);
     }
 
-    logger = createLogger("aztec:aztec-starter:voting");
-    logger.info("Aztec-Starter tests running.");
+    logger = createLogger("aztec:aztec-starter:gods-hand");
+    logger.info("GodsHand tests running.");
 
     pxe = await setupPXE();
 
@@ -123,7 +123,7 @@ describe("Voting", () => {
 
   it("Deploys the contract", async () => {
     const salt = Fr.random();
-    const VotingContractArtifact = EasyPrivateVotingContractArtifact;
+    const GodsHandArtifact = GodsHandContractArtifact;
     const accounts = await Promise.all(
       (
         await generateSchnorrAccounts(2)
@@ -144,17 +144,14 @@ describe("Voting", () => {
     );
 
     const deploymentData = await getContractInstanceFromDeployParams(
-      VotingContractArtifact,
+      GodsHandArtifact,
       {
         constructorArgs: [adminAddress],
         salt,
         deployer: deployerWallet.getAddress(),
       }
     );
-    const deployer = new ContractDeployer(
-      VotingContractArtifact,
-      deployerWallet
-    );
+    const deployer = new ContractDeployer(GodsHandArtifact, deployerWallet);
     const tx = deployer.deploy(adminAddress).send({
       contractAddressSalt: salt,
       fee: { paymentMethod: sponsoredPaymentMethod }, // without the sponsoredFPC the deployment fails, thus confirming it works
@@ -184,55 +181,268 @@ describe("Voting", () => {
     );
   });
 
-  it("It casts a vote", async () => {
-    const candidate = new Fr(1);
-
-    const contract = await EasyPrivateVotingContract.deploy(
+  it("Creates a disaster and accepts donations", async () => {
+    const contract = await GodsHandContract.deploy(
       firstWallet,
       firstWallet.getAddress()
     )
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
-    const tx = await contract.methods
-      .cast_vote(candidate)
+
+    // Create disaster (admin is agent by default)
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .wait();
-    let count = await contract.methods.get_vote(candidate).simulate();
-    expect(count).toBe(1n);
+
+    // Check initial donation count
+    let donationCount = await contract.methods
+      .get_donation_count(disasterHash)
+      .simulate();
+    expect(donationCount).toBe(0n);
+
+    // Make donation
+    const donor = randomWallets[0];
+    const contractWithDonor = contract.withWallet(donor);
+    await contractWithDonor.methods
+      .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Check donation count increased
+    donationCount = await contract.methods
+      .get_donation_count(disasterHash)
+      .simulate();
+    expect(donationCount).toBe(1n);
   });
 
-  it("It should fail when trying to vote twice", async () => {
-    const candidate = new Fr(1);
-
-    const votingContract = await EasyPrivateVotingContract.deploy(
+  it("Should fail when trying to donate twice", async () => {
+    const contract = await GodsHandContract.deploy(
       firstWallet,
       firstWallet.getAddress()
     )
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed();
-    await votingContract.methods
-      .cast_vote(candidate)
+
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+
+    // Create disaster
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .wait();
-    expect(await votingContract.methods.get_vote(candidate).simulate()).toBe(
+
+    const donor = randomWallets[0];
+    const contractWithDonor = contract.withWallet(donor);
+
+    // First donation
+    await contractWithDonor.methods
+      .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    expect(
+      await contract.methods.get_donation_count(disasterHash).simulate()
+    ).toBe(1n);
+
+    // We try donating again, but our TX is dropped due to trying to emit duplicate nullifiers
+    // first confirm that it fails simulation
+    await expect(
+      contractWithDonor.methods
+        .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+        .wait()
+    ).rejects.toThrow(/Existing nullifier/);
+
+    // if we skip simulation before submitting the tx,
+    // tx will be included in a block but with app logic reverted
+    await expect(
+      contractWithDonor.methods
+        .donate(disasterHash, 100n, new Fr(1), new Fr(0x123))
+        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+        .wait()
+    ).rejects.toThrow(/Existing nullifier/);
+  });
+
+  it("Creates a disaster and accepts votes", async () => {
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+
+    // Create disaster
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Check initial vote count
+    let voteCount = await contract.methods
+      .get_vote_count(disasterHash)
+      .simulate();
+    expect(voteCount).toBe(0n);
+
+    // Vote
+    const voter = randomWallets[0];
+    const org = randomAddresses[1];
+    const contractWithVoter = contract.withWallet(voter);
+    await contractWithVoter.methods
+      .vote(disasterHash, org, 1)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Check vote count increased
+    voteCount = await contract.methods.get_vote_count(disasterHash).simulate();
+    expect(voteCount).toBe(1n);
+  });
+
+  it("Should fail when trying to vote twice", async () => {
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+
+    // Create disaster
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    const voter = randomWallets[0];
+    const org = randomAddresses[1];
+    const contractWithVoter = contract.withWallet(voter);
+
+    // First vote
+    await contractWithVoter.methods
+      .vote(disasterHash, org, 1)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    expect(await contract.methods.get_vote_count(disasterHash).simulate()).toBe(
       1n
     );
 
     // We try voting again, but our TX is dropped due to trying to emit duplicate nullifiers
-    // first confirm that it fails simulation
     await expect(
-      votingContract.methods
-        .cast_vote(candidate)
+      contractWithVoter.methods
+        .vote(disasterHash, org, 2)
         .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
         .wait()
     ).rejects.toThrow(/Existing nullifier/);
-    // if we skip simulation before submitting the tx,
-    // tx will be included in a block but with app logic reverted
-    await expect(
-      votingContract.methods
-        .cast_vote(candidate)
-        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
-        .wait()
-    ).rejects.toThrow(/Existing nullifier/);
+  });
+
+  it("Tests fund management workflow", async () => {
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+
+    // Create disaster
+    const disasterHash = await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+
+    await contract.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    const org = randomAddresses[0];
+
+    // Check initial unlocked funds
+    let unlockedFunds = await contract.methods
+      .get_unlocked_funds(disasterHash, org)
+      .simulate();
+    expect(unlockedFunds).toBe(0n);
+
+    // Unlock funds (admin is agent by default)
+    await contract.methods
+      .unlock_funds(disasterHash, org, 5000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Check unlocked funds
+    unlockedFunds = await contract.methods
+      .get_unlocked_funds(disasterHash, org)
+      .simulate();
+    expect(unlockedFunds).toBe(5000n);
+
+    // Claim funds
+    const contractWithOrg = contract.withWallet(randomWallets[0]); // org wallet
+    await contractWithOrg.methods
+      .claim(disasterHash)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Check funds were claimed
+    unlockedFunds = await contract.methods
+      .get_unlocked_funds(disasterHash, org)
+      .simulate();
+    expect(unlockedFunds).toBe(0n);
+  });
+
+  it("Tests agent management", async () => {
+    const contract = await GodsHandContract.deploy(
+      firstWallet,
+      firstWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+
+    const agent = randomAddresses[0];
+
+    // Check agent is not authorized initially
+    let isAgent = await contract.methods.is_agent(agent).simulate();
+    expect(isAgent).toBe(false);
+
+    // Add agent
+    await contract.methods
+      .add_agent(agent)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Check agent is now authorized
+    isAgent = await contract.methods.is_agent(agent).simulate();
+    expect(isAgent).toBe(true);
+
+    // Agent should be able to create disaster
+    const contractWithAgent = contract.withWallet(randomWallets[0]);
+    const disasterHash = await contractWithAgent.methods
+      .create_disaster(new Fr(789), new Fr(101112), 2000000n)
+      .simulate();
+
+    await contractWithAgent.methods
+      .create_disaster(new Fr(789), new Fr(101112), 2000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Verify disaster was created
+    const disasterInfo = await contract.methods
+      .get_disaster_info(disasterHash)
+      .simulate();
+    expect(disasterInfo.title).toEqual(new Fr(789));
+    expect(disasterInfo.metadata).toEqual(new Fr(101112));
+    expect(disasterInfo.amount).toBe(2000000n);
+    expect(disasterInfo.active).toBe(true);
   });
 });

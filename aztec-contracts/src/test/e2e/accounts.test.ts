@@ -1,7 +1,7 @@
 import {
-  EasyPrivateVotingContractArtifact,
-  EasyPrivateVotingContract,
-} from "../../artifacts/EasyPrivateVoting.js";
+  GodsHandContractArtifact,
+  GodsHandContract,
+} from "../../artifacts/GodsHand.js";
 import {
   AccountManager,
   AccountWallet,
@@ -59,7 +59,7 @@ describe("Accounts", () => {
     }
 
     logger = createLogger("aztec:aztec-starter:accounts");
-    logger.info("Aztec-Starter tests running.");
+    logger.info("GodsHand Accounts tests running.");
 
     pxe = await setupPXE();
 
@@ -151,16 +151,10 @@ describe("Accounts", () => {
     }
 
     // arbitrary transactions to progress 2 blocks, and have fee juice on Aztec ready to claim
-    await EasyPrivateVotingContract.deploy(
-      ownerWallet,
-      ownerWallet.getAddress()
-    )
+    await GodsHandContract.deploy(ownerWallet, ownerWallet.getAddress())
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed(); // deploy contract with first funded wallet
-    await EasyPrivateVotingContract.deploy(
-      ownerWallet,
-      ownerWallet.getAddress()
-    )
+    await GodsHandContract.deploy(ownerWallet, ownerWallet.getAddress())
       .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
       .deployed(); // deploy contract with first funded wallet
 
@@ -205,7 +199,7 @@ describe("Accounts", () => {
 
   it("Sponsored contract deployment", async () => {
     const salt = Fr.random();
-    const VotingContractArtifact = EasyPrivateVotingContractArtifact;
+    const GodsHandArtifact = GodsHandContractArtifact;
     const accounts = await Promise.all(
       (
         await generateSchnorrAccounts(2)
@@ -226,17 +220,14 @@ describe("Accounts", () => {
     );
 
     const deploymentData = await getContractInstanceFromDeployParams(
-      VotingContractArtifact,
+      GodsHandArtifact,
       {
         constructorArgs: [adminAddress],
         salt,
         deployer: deployerWallet.getAddress(),
       }
     );
-    const deployer = new ContractDeployer(
-      VotingContractArtifact,
-      deployerWallet
-    );
+    const deployer = new ContractDeployer(GodsHandArtifact, deployerWallet);
     const tx = deployer.deploy(adminAddress).send({
       contractAddressSalt: salt,
       fee: { paymentMethod: sponsoredPaymentMethod }, // without the sponsoredFPC the deployment fails, thus confirming it works
@@ -264,5 +255,109 @@ describe("Accounts", () => {
     expect(receiptAfterMined.contract.instance.address).toEqual(
       deploymentData.address
     );
+  });
+
+  it("Creates multiple funded agent accounts", async () => {
+    // Create multiple accounts for agents
+    const agentAccounts = await Promise.all(
+      (
+        await generateSchnorrAccounts(3)
+      ).map((a) => getSchnorrAccount(pxe, a.secret, a.signingKey, a.salt))
+    );
+
+    // Deploy all agent accounts with sponsored fees
+    await Promise.all(
+      agentAccounts.map((a) =>
+        a.deploy({ fee: { paymentMethod: sponsoredPaymentMethod } }).wait()
+      )
+    );
+
+    const agentWallets = await Promise.all(
+      agentAccounts.map((a) => a.getWallet())
+    );
+    const agentAddresses = agentWallets.map((w) => w.getAddress());
+
+    // Deploy GodsHand contract
+    const contract = await GodsHandContract.deploy(
+      ownerWallet,
+      ownerWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+
+    // Add all agents
+    for (const agentAddress of agentAddresses) {
+      await contract.methods
+        .add_agent(agentAddress)
+        .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+        .wait();
+    }
+
+    // Verify all agents are authorized
+    for (const agentAddress of agentAddresses) {
+      const isAgent = await contract.methods.is_agent(agentAddress).simulate();
+      expect(isAgent).toBe(true);
+    }
+  });
+
+  it("Tests account permissions with GodsHand contract", async () => {
+    // Create admin and agent accounts
+    const adminAccount = await getSchnorrAccount(
+      pxe,
+      Fr.random(),
+      deriveSigningKey(Fr.random()),
+      Fr.random()
+    );
+    const agentAccount = await getSchnorrAccount(
+      pxe,
+      Fr.random(),
+      deriveSigningKey(Fr.random()),
+      Fr.random()
+    );
+
+    // Deploy accounts
+    await adminAccount
+      .deploy({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+    await agentAccount
+      .deploy({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    const adminWallet = await adminAccount.getWallet();
+    const agentWallet = await agentAccount.getWallet();
+
+    // Deploy contract with admin
+    const contract = await GodsHandContract.deploy(
+      adminWallet,
+      adminWallet.getAddress()
+    )
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .deployed();
+
+    // Admin should be able to add agent
+    await contract.methods
+      .add_agent(agentWallet.getAddress())
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    // Agent should be able to create disaster
+    const contractWithAgent = contract.withWallet(agentWallet);
+
+    const disasterHash = await contractWithAgent.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .simulate();
+
+    await contractWithAgent.methods
+      .create_disaster(new Fr(123), new Fr(456), 1000000n)
+      .send({ fee: { paymentMethod: sponsoredPaymentMethod } })
+      .wait();
+
+    expect(disasterHash).toBeDefined();
+
+    // Verify disaster is active
+    const isActive = await contract.methods
+      .is_disaster_active(disasterHash)
+      .simulate();
+    expect(isActive).toBe(true);
   });
 });
