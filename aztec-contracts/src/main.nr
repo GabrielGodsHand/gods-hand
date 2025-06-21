@@ -1,7 +1,7 @@
 use dep::aztec::macros::aztec;
 
 #[aztec]
-pub contract AnonymousDonations {
+pub contract GodsHand {
     use dep::aztec::{
         macros::{
             functions::{initializer, internal, private, public, view},
@@ -107,7 +107,7 @@ pub contract AnonymousDonations {
         context.push_nullifier(nullifier);
         
         // Call public function to update donation count
-        AnonymousDonations::at(context.this_address())
+        GodsHand::at(context.this_address())
             .increment_donation_count(disaster_hash)
             .enqueue(&mut context);
     }
@@ -126,7 +126,7 @@ pub contract AnonymousDonations {
         let caller = context.msg_sender();
         
         // Call public function to handle claim logic
-        AnonymousDonations::at(context.this_address())
+        GodsHand::at(context.this_address())
             .process_claim(disaster_hash, caller)
             .enqueue(&mut context);
     }
@@ -164,7 +164,7 @@ pub contract AnonymousDonations {
         context.push_nullifier(nullifier);
         
         // Call public function to increment vote count
-        AnonymousDonations::at(context.this_address())
+        GodsHand::at(context.this_address())
             .increment_vote_count(disaster_hash)
             .enqueue(&mut context);
     }
