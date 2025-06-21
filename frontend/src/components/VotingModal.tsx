@@ -64,7 +64,7 @@ export default function VotingModal({
 
       onResult(({ verified, result }) => {
         if (verified) {
-          const isOver18 = result.age.gte.result;
+          const isOver18 = result.age?.gte?.result;
           if (isOver18) {
             setVerificationStatus(
               "✅ Age verification successful! You can now vote."
@@ -85,10 +85,12 @@ export default function VotingModal({
           setIsVerifying(false);
         }
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Verification error:", error);
       setVerificationStatus(
-        `❌ Error: ${error.message || "Verification failed"}`
+        `❌ Error: ${
+          error instanceof Error ? error.message : "Verification failed"
+        }`
       );
       setIsVerifying(false);
     }
@@ -122,9 +124,13 @@ export default function VotingModal({
         onClose();
         resetModal();
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Vote submission error:", error);
-      setSubmitStatus(`❌ Error: ${error.message || "Failed to submit vote"}`);
+      setSubmitStatus(
+        `❌ Error: ${
+          error instanceof Error ? error.message : "Failed to submit vote"
+        }`
+      );
       setIsSubmitting(false);
     }
   };
