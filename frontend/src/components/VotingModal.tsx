@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { zkPassportService } from "@/lib/zkpassport";
 import { createClient } from "@/lib/supabase/client";
+import qrcode from "qrcode";
 
 interface VotingModalProps {
   isOpen: boolean;
@@ -38,29 +39,19 @@ export default function VotingModal({
 
   const handleVerification = async () => {
     setIsVerifying(true);
-    setVerificationStatus("Starting ZKPassport verification...");
-
-    // Simulate verification process for testing
-    // setTimeout(() => {
-    //   setVerificationStatus(
-    //     "✅ Age verification successful! You can now vote."
-    //   );
-    //   setTimeout(() => {
-    //     setCurrentStep("voting");
-    //     setIsVerifying(false);
-    //     setVerificationStatus("");
-    //   }, 1500);
-    // }, 1000);
+    setVerificationStatus("Generating QR code...");
 
     try {
       const { url, onResult } = await zkPassportService.verifyAgeForVoting();
 
-      setVerificationStatus(
-        "Please complete age verification in the popup window..."
-      );
-
-      // Open verification URL in popup
-      window.open(url, "zkpassport-verification", "width=500,height=600");
+      // Generate QR code instead of opening popup
+      const canvas = document.getElementById("qr-canvas");
+      if (canvas) {
+        await qrcode.toCanvas(canvas, url);
+        setVerificationStatus(
+          "Scan the QR code with your phone to verify your age"
+        );
+      }
 
       onResult(({ verified, result }) => {
         if (verified) {
@@ -268,11 +259,20 @@ export default function VotingModal({
                           Age Verification Required
                         </h3>
                         <p className="text-gray-700 font-['Cinzel'] mb-4 leading-relaxed">
-                          To maintain voting integrity, you must verify that you
-                          are 18+ years old using ZKPassport. This process is
-                          completely anonymous and secure.
+                          Scan the QR code with your phone to verify you are 18+
+                          using ZKPassport.
                         </p>
                       </div>
+
+                      {/* QR Code Display */}
+                      {isVerifying && (
+                        <div className="mb-4 text-center">
+                          <canvas
+                            id="qr-canvas"
+                            className="mx-auto border-2 border-amber-600 rounded-lg bg-white p-4"
+                          />
+                        </div>
+                      )}
 
                       {/* Status Message */}
                       {verificationStatus && (
@@ -289,37 +289,12 @@ export default function VotingModal({
                         disabled={isVerifying}
                         className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 disabled:text-gray-500 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel']"
                       >
-                        {isVerifying ? (
-                          <div className="flex items-center justify-center">
-                            <svg
-                              className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-900"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
-                            Verifying...
-                          </div>
-                        ) : (
-                          "Verify Age with ZKPassport"
-                        )}
+                        {isVerifying
+                          ? "Waiting for verification..."
+                          : "Generate QR Code"}
                       </button>
                     </motion.div>
                   )}
-
                   {currentStep === "voting" && (
                     <motion.div
                       key="voting"

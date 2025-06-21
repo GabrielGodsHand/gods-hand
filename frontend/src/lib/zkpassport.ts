@@ -4,7 +4,9 @@ export class ZKPassportService {
   private zkPassport: ZKPassport;
 
   constructor() {
-    this.zkPassport = new ZKPassport();
+    this.zkPassport = new ZKPassport(
+      process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000"
+    );
   }
 
   async verifyAge(minAge: number = 18): Promise<{
