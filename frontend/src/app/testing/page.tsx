@@ -347,7 +347,7 @@ export default function GodsHandTestPage() {
           return;
       }
 
-      setQueryResults((prev) => ({ ...prev, [functionName]: result }));
+      setQueryResults((prev: any) => ({ ...prev, [functionName]: result }));
       setStatus(`Query completed: ${functionName}`);
     } catch (err) {
       setError(
