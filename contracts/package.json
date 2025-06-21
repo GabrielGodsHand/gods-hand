@@ -1,0 +1,19 @@
+{
+  "name": "storage-proof-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "deploy:usdc": "npx hardhat run scripts/deploy-usdc.js --network sepolia",
+    "deploy:vault": "npx hardhat run scripts/deploy-vault.js --network sepolia",
+    "compile-contracts": "npx hardhat compile"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@types/dotenv": "^6.1.1",
+    "dotenv": "^16.5.0"
+  }
+}
