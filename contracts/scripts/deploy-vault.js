@@ -1,29 +1,40 @@
-const { ethers } = require("hardhat");
+const { ethers, run } = require("hardhat");
 
 async function main() {
-  // Get the signer
   const [deployer] = await ethers.getSigners();
 
-  console.log("Deploying contracts with account:", deployer.address);
+  console.log("Deploying Vault contract with account:", deployer.address);
   console.log(
     "Account balance:",
     (await deployer.provider.getBalance(deployer.address)).toString()
   );
 
-  // Get contract factory and connect to signer
-  const ContractFactory = await ethers.getContractFactory("Vault");
-  const contract = await ContractFactory.connect(deployer).deploy(
-    "0x929080c91318E6E03FC91E8A16993df6F93e30D9"
-  );
+  const usdcAddress = "0x7ba750053655041AF3b2Ed38fdac946447119D3a";
 
-  await contract.waitForDeployment();
+  const VaultFactory = await ethers.getContractFactory("Vault");
+  const vault = await VaultFactory.connect(deployer).deploy(usdcAddress);
 
-  console.log("Contract deployed to:", await contract.getAddress());
+  await vault.waitForDeployment();
+
+  const vaultAddress = await vault.getAddress();
+  console.log("Vault contract deployed to:", vaultAddress);
+
+  console.log("Waiting for 3 confirmations...");
+  await vault.deploymentTransaction().wait(3);
+
+  console.log("Verifying Vault contract...");
+  try {
+    await run("verify:verify", {
+      address: vaultAddress,
+      constructorArguments: [usdcAddress],
+    });
+    console.log("✅ Vault contract verified!");
+  } catch (err) {
+    console.error("❌ Verification failed:", err.message);
+  }
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

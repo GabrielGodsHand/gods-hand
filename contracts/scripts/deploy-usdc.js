@@ -1,9 +1,7 @@
-const { ethers } = require("hardhat");
+const { ethers, run } = require("hardhat");
 
 async function main() {
-  // Get the signer
   const [deployer] = await ethers.getSigners();
-  console.log(deployer);
 
   console.log("Deploying contracts with account:", deployer.address);
   console.log(
@@ -11,7 +9,6 @@ async function main() {
     (await deployer.provider.getBalance(deployer.address)).toString()
   );
 
-  // Get contract factory and connect to signer
   const ContractFactory = await ethers.getContractFactory("MockUSDC");
   const contract = await ContractFactory.connect(
     deployer
@@ -19,12 +16,26 @@ async function main() {
 
   await contract.waitForDeployment();
 
-  console.log("Contract deployed to:", await contract.getAddress());
+  const address = await contract.getAddress();
+  console.log("Contract deployed to:", address);
+
+  // Optional: wait a few blocks to ensure Blockscout indexed it
+  console.log("Waiting for 3 confirmations...");
+  await contract.deploymentTransaction().wait(3);
+
+  console.log("Verifying contract...");
+  try {
+    await run("verify:verify", {
+      address,
+      constructorArguments: [], // Add constructor args here if any
+    });
+    console.log("✅ Contract verified!");
+  } catch (err) {
+    console.error("❌ Verification failed:", err.message);
+  }
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
