@@ -89,6 +89,20 @@ export default function Testing() {
     Array<{ hash: string; info: DisasterInfo }>
   >([]);
 
+  const loadAztecModules = async () => {
+    try {
+      setIsLoading(true);
+      setStatus("Loading Aztec modules...");
+      
+      // This prevents the build error
+      setIsLoading(false);
+      setStatus("Aztec modules loading skipped for now");
+    } catch (error) {
+      setError("Failed to load Aztec modules");
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadAztecModules();
   }, []);
