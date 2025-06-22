@@ -179,7 +179,7 @@ donateForm.addEventListener('submit', async (e) => {
   console.log(tokenField);
 
   await executeTransaction('donate', [
-    new Fr(BigInt(hash)),
+    Fr.fromHexString(hash),
     amount,
     chainField,
     tokenField,

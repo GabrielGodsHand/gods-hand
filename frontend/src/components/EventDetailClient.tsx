@@ -22,9 +22,7 @@ interface EventDetailClientProps {
   eventId: string;
 }
 
-export default function EventDetailClient({
-  eventId,
-}: EventDetailClientProps) {
+export default function EventDetailClient({ eventId }: EventDetailClientProps) {
   const navigate = useNavigate();
   const supabase = createClient();
 
@@ -211,12 +209,7 @@ export default function EventDetailClient({
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <DivineLoader
-            message="Loading Details..."
-            size="large"
-          />
-        )}
+        {loading && <DivineLoader message="Loading Details..." size="large" />}
 
         {/* Event Not Found */}
         {!loading && !event && (
@@ -554,7 +547,8 @@ export default function EventDetailClient({
                             <div className="flex justify-between items-start mb-4">
                               <div>
                                 <h3 className="text-xl font-bold text-gray-900 font-['Cinzel'] drop-shadow-sm">
-                                  {claim.organization_name || "Unknown Organization"}
+                                  {claim.organization_name ||
+                                    "Unknown Organization"}
                                 </h3>
                                 <div className="text-2xl font-black text-amber-800 font-['Cinzel'] font-bold mt-2 drop-shadow-lg">
                                   ${claim.claimed_amount.toLocaleString()}
@@ -723,7 +717,8 @@ export default function EventDetailClient({
                   Request Funds
                 </button>
                 <p className="text-gray-600 font-['Cinzel'] text-sm mt-4 italic">
-                  💡 Anonymous voting ensures fair and transparent fund distribution
+                  💡 Anonymous voting ensures fair and transparent fund
+                  distribution
                 </p>
               </div>
             </div>
@@ -736,6 +731,7 @@ export default function EventDetailClient({
         isOpen={isDonationModalOpen}
         onClose={() => setIsDonationModalOpen(false)}
         eventTitle={event?.title || "Disaster Relief Event"}
+        disasterHash={event?.disaster_hash || ""}
       />
 
       {/* Request Funds Modal */}

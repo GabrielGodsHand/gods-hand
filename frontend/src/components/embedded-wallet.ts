@@ -8,28 +8,38 @@ import {
   SponsoredFeePaymentMethod,
   type PXE,
   AccountWallet,
-} from '@aztec/aztec.js';
-import { SponsoredFPCContractArtifact } from '@aztec/noir-contracts.js/SponsoredFPC';
-import { GodsHandContractArtifact } from './artifacts/GodsHand';
-import { SPONSORED_FPC_SALT } from '@aztec/constants';
-import { randomBytes } from '@aztec/foundation/crypto';
-import { getEcdsaRAccount } from '@aztec/accounts/ecdsa/lazy';
-import { getSchnorrAccount } from '@aztec/accounts/schnorr/lazy';
-import { getPXEServiceConfig } from '@aztec/pxe/config';
-import { createPXEService } from '@aztec/pxe/client/lazy';
+  deriveMasterIncomingViewingSecretKey,
+} from "@aztec/aztec.js";
+import { SponsoredFPCContractArtifact } from "@aztec/noir-contracts.js/SponsoredFPC";
+import { GodsHandContractArtifact } from "./artifacts/GodsHand";
+import { SPONSORED_FPC_SALT } from "@aztec/constants";
+import { randomBytes } from "@aztec/foundation/crypto";
+import { getEcdsaRAccount } from "@aztec/accounts/ecdsa/lazy";
+import {
+  getSchnorrAccount,
+  getSchnorrAccountContractAddress,
+} from "@aztec/accounts/schnorr/lazy";
+import { getPXEServiceConfig } from "@aztec/pxe/config";
+import { createPXEService } from "@aztec/pxe/client/lazy";
 import {
   type ContractArtifact,
   getDefaultInitializer,
-} from '@aztec/stdlib/abi';
-import { getInitialTestAccounts } from '@aztec/accounts/testing';
+} from "@aztec/stdlib/abi";
+import {
+  getInitialTestAccounts,
+  INITIAL_TEST_ACCOUNT_SALTS,
+  INITIAL_TEST_ENCRYPTION_KEYS,
+  INITIAL_TEST_SIGNING_KEYS,
+  InitialAccountData,
+} from "@aztec/accounts/testing";
 
 const PROVER_ENABLED = false;
 export const GODS_HAND_CONTRACT_SALT = BigInt(
   process.env.GODS_HAND_CONTRACT_SALT || 0
 );
 
-const logger = createLogger('wallet');
-const LocalStorageKey = 'aztec-account';
+const logger = createLogger("wallet");
+const LocalStorageKey = "aztec-account";
 
 // This is a minimal implementation of an Aztec wallet, that saves the private keys in local storage.
 // This does not implement `@aztec.js/Wallet` interface though
@@ -63,7 +73,7 @@ export class EmbeddedWallet {
 
     // Log the Node Info
     const nodeInfo = await this.pxe.getNodeInfo();
-    logger.info('PXE Connected to node', nodeInfo);
+    logger.info("PXE Connected to node", nodeInfo);
   }
 
   // Internal method to use the Sponsored FPC Contract for fee payment
@@ -96,8 +106,45 @@ export class EmbeddedWallet {
     return this.connectedAccount;
   }
 
+  TESTNET_SECRET_KEYS = [
+    Fr.fromHexString(
+      "079f605a0a308cbbc420eb3160b855dfc7a7a78e978cba5fb5c6ebcded6ff4e1"
+    ),
+    Fr.fromHexString(
+      "054347a409c27bb7a1bd46ec4c4c1a3304e0c472f7a8b37d94d99ae26d809f18"
+    ),
+    Fr.fromHexString(
+      "270c5d74d95b4775e1abb008f915e71816d2154dbc7f3c4f6765c82f6eba90ab"
+    ),
+  ];
+
+  TESTNET_ENCRYPTION_KEYS = this.TESTNET_SECRET_KEYS.map((secret) =>
+    deriveMasterIncomingViewingSecretKey(secret)
+  );
+
+  TESTNET_ACCOUNT_SALTS = [Fr.ZERO, Fr.ZERO, Fr.ZERO];
+
+  async getTestnetAccounts(): Promise<InitialAccountData[]> {
+    return Promise.all(
+      this.TESTNET_SECRET_KEYS.map(async (secret, i) => ({
+        secret,
+        signingKey: this.TESTNET_ENCRYPTION_KEYS[i],
+        salt: this.TESTNET_ACCOUNT_SALTS[i],
+        address: await getSchnorrAccountContractAddress(
+          secret,
+          this.TESTNET_ACCOUNT_SALTS[i],
+          this.TESTNET_ENCRYPTION_KEYS[i]
+        ),
+      }))
+    );
+  }
+
   async connectTestAccount(index: number) {
-    const testAccounts = await getInitialTestAccounts();
+    const testAccounts: InitialAccountData[] = !JSON.parse(
+      import.meta.env.VITE_IS_SANDBOX
+    )
+      ? await this.getTestnetAccounts()
+      : await getInitialTestAccounts();
     const account = testAccounts[index];
     const schnorrAccount = await getSchnorrAccount(
       this.pxe,
@@ -117,7 +164,7 @@ export class EmbeddedWallet {
   // Create a new account
   async createAccountAndConnect() {
     if (!this.pxe) {
-      throw new Error('PXE not initialized');
+      throw new Error("PXE not initialized");
     }
 
     // Generate a random salt, secret key, and signing key
@@ -151,7 +198,7 @@ export class EmbeddedWallet {
     const provenInteraction = await deployMethod.prove(deployOpts);
     const receipt = await provenInteraction.send().wait({ timeout: 120 });
 
-    logger.info('Account deployed', receipt);
+    logger.info("Account deployed", receipt);
 
     // Store the account in local storage
     const ecdsaWallet = await ecdsaAccount.getWallet();
@@ -159,7 +206,7 @@ export class EmbeddedWallet {
       LocalStorageKey,
       JSON.stringify({
         address: ecdsaWallet.getAddress().toString(),
-        signingKey: signingKey.toString('hex'),
+        signingKey: signingKey.toString("hex"),
         secretKey: secretKey.toString(),
         salt: salt.toString(),
       })
@@ -183,7 +230,7 @@ export class EmbeddedWallet {
     const ecdsaAccount = await getEcdsaRAccount(
       this.pxe,
       Fr.fromString(parsed.secretKey),
-      Buffer.from(parsed.signingKey, 'hex'),
+      Buffer.from(parsed.signingKey, "hex"),
       Fr.fromString(parsed.salt)
     );
 
