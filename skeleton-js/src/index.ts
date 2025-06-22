@@ -1,7 +1,10 @@
 import { WalletManager } from "./wallet-manager.js";
 import { ContractOperations } from "./contract-operations.js";
 import { AztecAddress, Fr, AccountWallet } from "@aztec/aztec.js";
-import { GodsHandContractArtifact } from "../artifacts/GodsHand.js";
+import {
+  GodsHandContract,
+  GodsHandContractArtifact,
+} from "../artifacts/GodsHand.js";
 import { AccountInfo, VoteType, TransactionReceipt } from "./types.js";
 import "fake-indexeddb/auto";
 import { config } from "dotenv";
@@ -49,8 +52,8 @@ export class AztecApp {
       [
         AztecAddress.fromString(
           isSandbox
-            ? "0x1372dc4621dfe80f6f077699be434629c1fb4dd96c6d337c5f34f31b338aaed2"
-            : "0x138dd3b661a4e603aae83e52dc80dd45d453d4a93647b4124bbcb14bde64b704"
+            ? "0x0bb503afa555ece146273fe00539f4dbcc2fc42d1cb4bbbf8e5bbea04aaa9eb9"
+            : "0x2cce50c358e5b0e04c06a665216f6831edf6bdfa27d07413c291a7ba840b6299"
         ),
         AztecAddress.fromString(
           isSandbox
@@ -65,7 +68,7 @@ export class AztecApp {
     console.log("Creating contract operations...");
     this.operations = new ContractOperations(
       this.walletManager,
-      CONTRACT_ADDRESS
+      CONTRACT_ADDRESS || ""
     );
     console.log("Contract operations created");
   }

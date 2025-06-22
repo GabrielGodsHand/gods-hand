@@ -27,6 +27,7 @@ import {
   WalletWithAccountData,
   TransactionReceipt,
 } from "./types.js";
+import { GodsHandContractArtifact } from "../artifacts/GodsHand.js";
 
 const PROVER_ENABLED = false;
 const ACCOUNTS_FILE = "accounts.json";
@@ -57,6 +58,39 @@ export class WalletManager {
     await this.pxe.registerContract({
       instance: await this.getSponsoredPFCContract(),
       artifact: SponsoredFPCContractArtifact,
+    });
+    const IS_SANDBOX = JSON.parse(process.env.IS_SANDBOX || "false");
+    const DEPLOYER_ADDRESS = IS_SANDBOX
+      ? process.env.SANDBOX_DEPLOYER_ADDRESS
+      : process.env.TESTNET_DEPLOYER_ADDRESS;
+    const DEPLOYMENT_SALT = IS_SANDBOX
+      ? process.env.SANDBOX_DEPLOYMENT_SALT
+      : process.env.TESTNET_DEPLOYMENT_SALT;
+
+    const instance = await getContractInstanceFromDeployParams(
+      GodsHandContractArtifact,
+      {
+        constructorArtifact: getDefaultInitializer(GodsHandContractArtifact),
+        constructorArgs: [
+          AztecAddress.fromString(
+            IS_SANDBOX
+              ? process.env.SANDBOX_TOKEN_ADDRESS || ""
+              : process.env.TESTNET_TOKEN_ADDRESS
+          ),
+          AztecAddress.fromString(
+            IS_SANDBOX
+              ? process.env.SANDBOX_AGENT_ADDRESS
+              : process.env.TESTNET_AGENT_ADDRESS
+          ),
+          2,
+        ],
+        deployer: AztecAddress.fromString(DEPLOYER_ADDRESS),
+        salt: Fr.fromString(DEPLOYMENT_SALT),
+      }
+    );
+    await this.pxe.registerContract({
+      instance,
+      artifact: GodsHandContractArtifact,
     });
 
     console.log("Getting node info...");
@@ -350,6 +384,7 @@ export class WalletManager {
       salt: deploymentSalt,
     });
 
+    console.log("Registering contract", instance.address);
     await this.pxe.registerContract({ instance, artifact });
   }
 }

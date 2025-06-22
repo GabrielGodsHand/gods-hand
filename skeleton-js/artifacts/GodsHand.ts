@@ -177,6 +177,9 @@ contract_balance: {
     /** claim(disaster_hash: field) */
     claim: ((disaster_hash: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
+    /** constructor(eth_token: struct, agent: struct, vote_threshold: integer) */
+    constructor: ((eth_token: AztecAddressLike, agent: AztecAddressLike, vote_threshold: (bigint | number)) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+
     /** create_disaster(disaster_hash: field, estimated_amount: integer) */
     create_disaster: ((disaster_hash: FieldLike, estimated_amount: (bigint | number)) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
@@ -206,9 +209,6 @@ contract_balance: {
 
     /** get_vote_count(disaster_hash: field) */
     get_vote_count: ((disaster_hash: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
-
-    /** init(eth_token: struct, agent: struct, vote_threshold: integer) */
-    init: ((eth_token: AztecAddressLike, agent: AztecAddressLike, vote_threshold: (bigint | number)) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
     /** public_dispatch(selector: field) */
     public_dispatch: ((selector: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;

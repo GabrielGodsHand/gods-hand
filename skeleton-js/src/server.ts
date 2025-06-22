@@ -16,21 +16,21 @@ async function initializeApp() {
 // Create disaster endpoint
 app.post("/disaster", async (req: Request, res: Response) => {
   try {
-    const { title, metadata, amount, accountId } = req.body;
+    const { title, metadata, amount } = req.body;
+    console.log(req.body);
 
     if (!title || !metadata || !amount) {
       return res
         .status(400)
         .json({ error: "Missing required fields: title, metadata, amount" });
     }
-
-    if (accountId) {
-      aztecApp.switchAccount(accountId);
-    }
+    const isSandbox = JSON.parse(process.env.IS_SANDBOX || "false");
+    aztecApp.switchAccount(isSandbox ? "1" : "2");
 
     const result = await aztecApp.createDisaster(title, metadata, amount);
     res.json(result);
   } catch (error) {
+    console.log(error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({ error: errorMessage });

@@ -1,6 +1,17 @@
-import { Fr, AztecAddress } from "@aztec/aztec.js";
+import {
+  Fr,
+  AztecAddress,
+  getContractInstanceFromDeployParams,
+} from "@aztec/aztec.js";
 import { keccak256 } from "@aztec/foundation/crypto";
-import { GodsHandContract } from "../artifacts/GodsHand.js";
+import {
+  GodsHandContract,
+  GodsHandContractArtifact,
+} from "../artifacts/GodsHand.js";
+import {
+  type ContractArtifact,
+  getDefaultInitializer,
+} from "@aztec/stdlib/abi";
 import { WalletManager } from "./wallet-manager.js";
 import { DisasterData, VoteType, TransactionReceipt } from "./types.js";
 
@@ -18,6 +29,7 @@ export class ContractOperations {
 
   private async getContract(): Promise<GodsHandContract> {
     const wallet = this.walletManager.getCurrentWallet();
+    console.log(this.contractAddress);
     return await GodsHandContract.at(
       AztecAddress.fromString(this.contractAddress),
       wallet
@@ -32,6 +44,7 @@ export class ContractOperations {
     const disasterData: DisasterData = { title, metadata };
     const disasterHash = textToField(JSON.stringify(disasterData));
     const contract = await this.getContract();
+
     const interaction = contract.methods.create_disaster(disasterHash, amount);
     const receipt = await this.walletManager.sendTransaction(interaction);
     return { receipt, disasterHash: disasterHash.toString() };
@@ -39,23 +52,12 @@ export class ContractOperations {
 
   async donate(
     disasterHash: string,
-    amount: number,
-    chain: string,
-    tokenAddress: string
+    amount: number
   ): Promise<TransactionReceipt> {
-    const chainField = new Fr(
-      BigInt("0x" + Number(chain).toString(16).padStart(62, "0"))
-    );
-    const tokenField = new Fr(
-      BigInt("0x" + tokenAddress.slice(2).padStart(62, "0"))
-    );
-
     const contract = await this.getContract();
     const interaction = contract.methods.donate(
       new Fr(BigInt(disasterHash)),
-      amount,
-      chainField,
-      tokenField
+      amount
     );
     return await this.walletManager.sendTransaction(interaction);
   }
