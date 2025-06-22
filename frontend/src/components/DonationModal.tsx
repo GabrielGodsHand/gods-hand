@@ -32,17 +32,85 @@ export default function DonationModal({
   onClose,
   eventTitle,
 }: DonationModalProps) {
-  const [step, setStep] = useState<"amount" | "wallet">("amount");
+  const [step, setStep] = useState<"wallet" | "amount">("wallet");
   const [donationAmount, setDonationAmount] = useState<string>("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string>("");
+  const [connectedWallet, setConnectedWallet] = useState<string>("");
+  const [connectedAccount, setConnectedAccount] = useState<string>("");
 
   // Dummy contract address for testing
   const DUMMY_CONTRACT_ADDRESS = "0x1234567890123456789012345678901234567890";
 
-  const handleAmountSubmit = () => {
-    if (donationAmount && parseFloat(donationAmount) > 0) {
-      setStep("wallet");
+  const handleDonate = async () => {
+    if (!donationAmount || parseFloat(donationAmount) <= 0) return;
+
+    setIsConnecting(true);
+    setConnectionStatus("Preparing transaction...");
+
+    try {
+      if (connectedWallet === "metamask") {
+        // Create Web3 instance (simplified for demo)
+        const web3 = new (
+          window as unknown as {
+            Web3: new (provider: EthereumProvider) => Web3Instance;
+          }
+        ).Web3(window.ethereum!);
+
+        // Convert USDC amount to wei (assuming 1 USDC = 0.001 ETH for demo purposes)
+        const ethAmount = (parseFloat(donationAmount) * 0.001).toString();
+        const donationAmountWei = web3.utils.toWei(ethAmount, "ether");
+
+        const transactionParameters = {
+          to: DUMMY_CONTRACT_ADDRESS,
+          from: connectedAccount,
+          value: donationAmountWei,
+          data: "0x", // Empty data for simple transfer
+        };
+
+        setConnectionStatus("Please confirm the transaction in MetaMask...");
+
+        const txHash = (await window.ethereum!.request({
+          method: "eth_sendTransaction",
+          params: [transactionParameters],
+        })) as string;
+
+        setConnectionStatus(
+          `Transaction sent! Hash: ${txHash.substring(0, 10)}...`
+        );
+
+        // Close modal after successful transaction
+        setTimeout(() => {
+          onClose();
+          setConnectionStatus("");
+          setIsConnecting(false);
+          setStep("wallet");
+          setDonationAmount("");
+          setConnectedWallet("");
+          setConnectedAccount("");
+        }, 3000);
+      } else if (connectedWallet === "aztec") {
+        setConnectionStatus("Processing Aztec transaction...");
+        // Aztec transaction logic would go here
+        setTimeout(() => {
+          setConnectionStatus("Aztec transaction completed!");
+          setTimeout(() => {
+            onClose();
+            setConnectionStatus("");
+            setIsConnecting(false);
+            setStep("wallet");
+            setDonationAmount("");
+            setConnectedWallet("");
+            setConnectedAccount("");
+          }, 2000);
+        }, 2000);
+      }
+    } catch (error: unknown) {
+      console.error("Transaction error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Transaction failed";
+      setConnectionStatus(`Error: ${errorMessage}`);
+      setIsConnecting(false);
     }
   };
 
@@ -71,73 +139,59 @@ export default function DonationModal({
         return;
       }
 
-      setConnectionStatus("Connected! Preparing transaction...");
+      setConnectionStatus("Connected! Proceeding to donation amount...");
+      setConnectedWallet("metamask");
+      setConnectedAccount(accounts[0]);
 
-      // Create Web3 instance (simplified for demo)
-      const web3 = new (
-        window as unknown as {
-          Web3: new (provider: EthereumProvider) => Web3Instance;
-        }
-      ).Web3(window.ethereum);
-
-      // Convert USDC amount to wei (assuming 1 USDC = 0.001 ETH for demo purposes)
-      const ethAmount = (parseFloat(donationAmount) * 0.001).toString();
-      const donationAmountWei = web3.utils.toWei(ethAmount, "ether");
-
-      const transactionParameters = {
-        to: DUMMY_CONTRACT_ADDRESS,
-        from: accounts[0],
-        value: donationAmountWei,
-        data: "0x", // Empty data for simple transfer
-      };
-
-      setConnectionStatus("Please confirm the transaction in MetaMask...");
-
-      const txHash = (await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [transactionParameters],
-      })) as string;
-
-      setConnectionStatus(
-        `Transaction sent! Hash: ${txHash.substring(0, 10)}...`
-      );
-
-      // Close modal after successful transaction
+      // Move to amount step after successful connection
       setTimeout(() => {
-        onClose();
+        setStep("amount");
         setConnectionStatus("");
         setIsConnecting(false);
-        setStep("amount");
-        setDonationAmount("");
-      }, 3000);
+      }, 1500);
     } catch (error: unknown) {
       console.error("MetaMask connection error:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Transaction failed";
+        error instanceof Error ? error.message : "Connection failed";
       setConnectionStatus(`Error: ${errorMessage}`);
       setIsConnecting(false);
     }
   };
 
   const connectAztec = () => {
-    setConnectionStatus("Aztec wallet integration coming soon...");
+    setIsConnecting(true);
+    setConnectionStatus("Connecting to Aztec wallet...");
+
+    // Simulate Aztec connection
     setTimeout(() => {
-      setConnectionStatus("");
+      setConnectionStatus("Connected! Proceeding to donation amount...");
+      setConnectedWallet("aztec");
+      setConnectedAccount("aztec_account_placeholder");
+
+      setTimeout(() => {
+        setStep("amount");
+        setConnectionStatus("");
+        setIsConnecting(false);
+      }, 1500);
     }, 2000);
   };
 
   const handleBack = () => {
-    setStep("amount");
+    setStep("wallet");
     setConnectionStatus("");
     setIsConnecting(false);
+    setConnectedWallet("");
+    setConnectedAccount("");
   };
 
   useEffect(() => {
     if (!isOpen) {
-      setStep("amount");
+      setStep("wallet");
       setDonationAmount("");
       setConnectionStatus("");
       setIsConnecting(false);
+      setConnectedWallet("");
+      setConnectedAccount("");
     }
   }, [isOpen]);
 
@@ -198,7 +252,7 @@ export default function DonationModal({
                 </button>
 
                 {/* Back Button (only show on wallet step) */}
-                {step === "wallet" && (
+                {step === "amount" && (
                   <button
                     onClick={handleBack}
                     className="absolute top-4 left-4 text-amber-900 hover:text-black transition-colors"
@@ -219,7 +273,78 @@ export default function DonationModal({
                   </button>
                 )}
 
-                {/* Step 1: Amount Input */}
+                {/* Step 1: Wallet Selection */}
+                {step === "wallet" && (
+                  <>
+                    {/* Title */}
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl font-bold text-gray-900 font-['Cinzel'] mb-2 drop-shadow-sm">
+                        Connect Your Wallet
+                      </h2>
+                      <div className="mt-2 text-gray-800 font-['Cinzel'] text-xs italic">
+                        For: {eventTitle}
+                      </div>
+                    </div>
+
+                    {/* Status Message */}
+                    {connectionStatus && (
+                      <div className="mb-6 p-3 bg-amber-200/70 rounded-lg border border-amber-600/50">
+                        <p className="text-gray-900 font-['Cinzel'] text-sm text-center font-medium">
+                          {connectionStatus}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Wallet Options */}
+                    <div className="space-y-4">
+                      {/* MetaMask Option */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={connectMetamask}
+                          disabled={isConnecting}
+                          className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel'] flex items-center justify-center"
+                        >
+                          <img
+                            src="/MetaMask.png"
+                            alt="MetaMask"
+                            className="w-6 h-6 mr-3"
+                          />
+                          {isConnecting && connectedWallet !== "aztec"
+                            ? "Connecting..."
+                            : "Connect MetaMask"}
+                        </button>
+                        <p className="text-gray-700 font-['Cinzel'] text-xs text-center italic px-2">
+                          Assets will be bridged from Sepolia to Aztec
+                        </p>
+                      </div>
+
+                      {/* Aztec Option */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={connectAztec}
+                          disabled={isConnecting}
+                          className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel'] flex items-center justify-center"
+                        >
+                          <svg
+                            className="w-6 h-6 mr-3"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 10.93 5.16-1.19 9-5.38 9-10.93V7l-10-5z" />
+                          </svg>
+                          {isConnecting && connectedWallet !== "metamask"
+                            ? "Connecting..."
+                            : "Connect Aztec Wallet"}
+                        </button>
+                        <p className="text-gray-700 font-['Cinzel'] text-xs text-center italic px-2">
+                          Connect your anonymous wallet to donate privately
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Step 2: Amount Input */}
                 {step === "amount" && (
                   <>
                     {/* Title */}
@@ -227,15 +352,30 @@ export default function DonationModal({
                       <h2 className="text-2xl font-bold text-gray-900 font-['Cinzel'] mb-2 drop-shadow-sm">
                         Enter Donation Amount
                       </h2>
-                      <div className="mt-2 text-gray-800 font-['Cinzel'] text-xs italic">
+                      <div className="mt-2 text-gray-800 font-['Cinzel'] text-sm">
+                        Connected:{" "}
+                        <span className="font-bold capitalize">
+                          {connectedWallet}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-gray-800 font-['Cinzel'] text-xs italic">
                         For: {eventTitle}
                       </div>
                     </div>
 
+                    {/* Status Message */}
+                    {connectionStatus && (
+                      <div className="mb-6 p-3 bg-amber-200/70 rounded-lg border border-amber-600/50">
+                        <p className="text-gray-900 font-['Cinzel'] text-sm text-center font-medium">
+                          {connectionStatus}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Amount Input */}
                     <div className="mb-6">
                       <label className="block text-gray-900 font-['Cinzel'] font-bold mb-3 text-lg">
-                        Amount (USDC)
+                        Amount (ETH)
                       </label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 font-['Cinzel'] text-xl font-bold">
@@ -253,79 +393,18 @@ export default function DonationModal({
                       </div>
                     </div>
 
-                    {/* Continue Button */}
+                    {/* Donate Button */}
                     <button
-                      onClick={handleAmountSubmit}
+                      onClick={handleDonate}
                       disabled={
-                        !donationAmount || parseFloat(donationAmount) <= 0
+                        !donationAmount ||
+                        parseFloat(donationAmount) <= 0 ||
+                        isConnecting
                       }
                       className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 disabled:text-gray-500 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel']"
                     >
-                      Continue to Payment
+                      {isConnecting ? "Processing..." : "Donate Now"}
                     </button>
-                  </>
-                )}
-
-                {/* Step 2: Wallet Selection */}
-                {step === "wallet" && (
-                  <>
-                    {/* Title */}
-                    <div className="text-center mb-8">
-                      <h2 className="text-2xl font-bold text-gray-900 font-['Cinzel'] mb-2 drop-shadow-sm">
-                        Choose your payment method
-                      </h2>
-                      <div className="mt-2 text-gray-800 font-['Cinzel'] text-sm">
-                        Donating:{" "}
-                        <span className="font-bold">
-                          ${donationAmount} USDC
-                        </span>
-                      </div>
-                      <div className="mt-1 text-gray-800 font-['Cinzel'] text-xs italic">
-                        For: {eventTitle}
-                      </div>
-                    </div>
-
-                    {/* Status Message */}
-                    {connectionStatus && (
-                      <div className="mb-6 p-3 bg-amber-200/70 rounded-lg border border-amber-600/50">
-                        <p className="text-gray-900 font-['Cinzel'] text-sm text-center font-medium">
-                          {connectionStatus}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Wallet Options */}
-                    <div className="space-y-4">
-                      {/* MetaMask Option */}
-                      <button
-                        onClick={connectMetamask}
-                        disabled={isConnecting}
-                        className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel'] flex items-center justify-center"
-                      >
-                        <img
-                          src="/MetaMask.png"
-                          alt="MetaMask"
-                          className="w-6 h-6 mr-3"
-                        />
-                        {isConnecting ? "Connecting..." : "MetaMask Wallet"}
-                      </button>
-
-                      {/* Aztec Option */}
-                      <button
-                        onClick={connectAztec}
-                        disabled={isConnecting}
-                        className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel'] flex items-center justify-center"
-                      >
-                        <svg
-                          className="w-6 h-6 mr-3"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 10.93 5.16-1.19 9-5.38 9-10.93V7l-10-5z" />
-                        </svg>
-                        Aztec Wallet (macOS only)
-                      </button>
-                    </div>
                   </>
                 )}
 

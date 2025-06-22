@@ -101,7 +101,7 @@ const Header: React.FC = () => {
             </h1>
           </div>
 
-          <div className="account-section">
+          {/* <div className="account-section">
             {loading ? (
               <div className="loading-spinner"></div>
             ) : user ? (
@@ -183,7 +183,7 @@ const Header: React.FC = () => {
                 Sign In
               </button>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </header>
