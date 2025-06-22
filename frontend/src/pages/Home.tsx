@@ -74,7 +74,7 @@ export default function Home() {
         {/* Single cloud layer */}
         <div className="parallax-layer clouds-layer" id="clouds-far">
           <img
-            src="/assets/clouds.PNG"
+            src="/assets/clouds.png"
             alt="Divine Clouds"
             className="clouds-image"
           />

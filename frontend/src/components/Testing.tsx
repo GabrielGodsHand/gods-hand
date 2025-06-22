@@ -1,6 +1,5 @@
 "use client";
 
-import "@/lib/buffer-patch";
 import { useState, useEffect } from "react";
 import { lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,49 +92,6 @@ export default function Testing() {
   useEffect(() => {
     loadAztecModules();
   }, []);
-
-  const loadAztecModules = async () => {
-    try {
-      setStatus("Loading Aztec modules...");
-
-      // Force buffer patch to load first and wait for it
-      await import("@/lib/buffer-patch");
-
-      // Small delay to ensure buffer is properly set up
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Use dynamic imports directly
-      const [aztecJs, embeddedWalletModule, godsHandModule] = await Promise.all(
-        [
-          import("@aztec/aztec.js"),
-          import("@/lib/embedded-wallet"),
-          import("@/lib/artifacts/GodsHand"),
-        ]
-      );
-
-      setAztec({
-        AztecAddress: aztecJs.AztecAddress,
-        Fr: aztecJs.Fr,
-        AccountWallet: aztecJs.AccountWallet,
-      });
-
-      setEmbeddedWalletClass(embeddedWalletModule.EmbeddedWallet);
-      setGodsHandContractClass(godsHandModule.GodsHandContract);
-
-      setIsLoading(false);
-      setStatus("Aztec modules loaded successfully");
-
-      // Initialize wallet after modules are loaded
-      await initializeWallet();
-    } catch (err) {
-      setError(
-        `Failed to load Aztec modules: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-      setIsLoading(false);
-    }
-  };
 
   const initializeWallet = async () => {
     if (!embeddedWalletClass) return;

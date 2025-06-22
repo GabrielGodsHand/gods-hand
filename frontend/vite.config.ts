@@ -10,27 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
-      crypto: "crypto-browserify",
-      stream: "stream-browserify",
-      path: "path-browserify",
-      util: "util",
-      assert: "assert",
-      buffer: "buffer",
-      process: "process/browser",
-      os: "os-browserify/browser",
     },
-  },
-  optimizeDeps: {
-    include: [
-      "buffer",
-      "process",
-      "crypto-browserify",
-      "stream-browserify",
-      "path-browserify",
-      "util",
-      "assert",
-      "os-browserify/browser",
-    ],
   },
   server: {
     headers: {

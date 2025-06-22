@@ -5,7 +5,7 @@ export class ZKPassportService {
 
   constructor() {
     this.zkPassport = new ZKPassport(
-      process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000"
+      import.meta.env.VITE_DOMAIN || "http://localhost:3000"
     );
   }
 

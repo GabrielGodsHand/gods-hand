@@ -345,7 +345,7 @@ export default function EventsClient({
         <div className="absolute inset-0 bg-gradient-to-br from-[#d4af8c] via-[#c9a876] to-[#b8956a]"></div>
         <div className="absolute inset-0 opacity-60">
           <img
-            src="/assets/clouds.PNG"
+            src="/assets/clouds.png"
             alt="Divine Clouds"
             className="w-full h-full object-cover"
           />
