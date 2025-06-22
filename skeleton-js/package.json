@@ -14,7 +14,8 @@
     "@aztec/foundation": "latest",
     "@aztec/noir-contracts.js": "latest",
     "@aztec/pxe": "latest",
-    "@aztec/stdlib": "latest",
+    "express": "^4.18.0",
+    "@types/express": "^4.17.0",
     "dotenv": "^16.5.0"
   },
   "devDependencies": {

@@ -68,7 +68,7 @@ pub contract GodsHand {
 
     #[public]
     #[initializer]
-    fn init(eth_token: AztecAddress, agent: AztecAddress, vote_threshold: u64) {
+    fn constructor(eth_token: AztecAddress, agent: AztecAddress, vote_threshold: u64) {
         storage.config.initialize(Config { eth_token, agent, vote_threshold });
     }
 

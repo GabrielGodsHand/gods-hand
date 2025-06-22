@@ -126,73 +126,73 @@ export class AztecApp {
 }
 
 // Example usage
-async function main(): Promise<void> {
-  console.log("Starting...");
-  const app = new AztecApp();
-  console.log("Initializing...");
-  await app.initialize();
+// async function main(): Promise<void> {
+//   console.log("Starting...");
+//   const app = new AztecApp();
+//   console.log("Initializing...");
+//   await app.initialize();
 
-  // Setup accounts
-  console.log("Connecting test accounts...");
-  await app.connectTestAccount("test1", 0);
-  console.log("Connected test1");
-  await app.connectTestAccount("test2", 1);
-  console.log("Connected test2");
-  await app.connectTestAccount("test3", 2);
-  const accounts = app.listAccounts();
-  console.log("Listing accounts...");
-  console.log("Available accounts:", accounts);
+//   // Setup accounts
+//   console.log("Connecting test accounts...");
+//   await app.connectTestAccount("test1", 0);
+//   console.log("Connected test1");
+//   await app.connectTestAccount("test2", 1);
+//   console.log("Connected test2");
+//   await app.connectTestAccount("test3", 2);
+//   const accounts = app.listAccounts();
+//   console.log("Listing accounts...");
+//   console.log("Available accounts:", accounts);
 
-  console.log("Switching to test2...");
-  // Switch to test1 and create disaster
-  app.switchAccount("test2");
-  console.log("Creating disaster...");
-  const { receipt: createReceipt, disasterHash } = await app.createDisaster(
-    "Earthquake Relief",
-    "Emergency fund for earthquake victims",
-    1000000
-  );
-  console.log("Disaster created: ", createReceipt);
+//   console.log("Switching to test2...");
+//   // Switch to test1 and create disaster
+//   app.switchAccount("test2");
+//   console.log("Creating disaster...");
+//   const { receipt: createReceipt, disasterHash } = await app.createDisaster(
+//     "Earthquake Relief",
+//     "Emergency fund for earthquake victims",
+//     1000000
+//   );
+//   console.log("Disaster created: ", createReceipt);
 
-  // Switch to test2 and donate
-  console.log("Switching to test1...");
-  app.switchAccount("test1");
-  console.log("Donating...");
-  const donateReceipt = await app.donate(
-    disasterHash,
-    50000,
-    "1",
-    "0x1234567890123456789012345678901234567890"
-  );
-  console.log("Donation made:", donateReceipt);
+//   // Switch to test2 and donate
+//   console.log("Switching to test1...");
+//   app.switchAccount("test1");
+//   console.log("Donating...");
+//   const donateReceipt = await app.donate(
+//     disasterHash,
+//     50000,
+//     "1",
+//     "0x1234567890123456789012345678901234567890"
+//   );
+//   console.log("Donation made:", donateReceipt);
 
-  console.log("Voting...");
-  const voteReceipt1 = await app.vote(disasterHash, accounts[0].address, 1);
-  console.log("Vote cast:", voteReceipt1);
+//   console.log("Voting...");
+//   const voteReceipt1 = await app.vote(disasterHash, accounts[0].address, 1);
+//   console.log("Vote cast:", voteReceipt1);
 
-  // Switch to test3 and vote
-  console.log("Switching to test3...");
-  app.switchAccount("test3");
-  const voteReceipt = await app.vote(disasterHash, accounts[0].address, 1);
-  console.log("Vote cast:", voteReceipt);
+//   // Switch to test3 and vote
+//   console.log("Switching to test3...");
+//   app.switchAccount("test3");
+//   const voteReceipt = await app.vote(disasterHash, accounts[0].address, 1);
+//   console.log("Vote cast:", voteReceipt);
 
-  console.log("Unlocking funds...");
-  console.log("Switching to test2...");
-  app.switchAccount("test2");
-  const unlockReceipt = await app.unlockFunds(
-    disasterHash,
-    accounts[0].address,
-    10000
-  );
-  console.log("Funds unlocked:", unlockReceipt);
+//   console.log("Unlocking funds...");
+//   console.log("Switching to test2...");
+//   app.switchAccount("test2");
+//   const unlockReceipt = await app.unlockFunds(
+//     disasterHash,
+//     accounts[0].address,
+//     10000
+//   );
+//   console.log("Funds unlocked:", unlockReceipt);
 
-  console.log("Claiming funds...");
-  console.log("Switching to test1...");
-  app.switchAccount("test1");
-  const claimReceipt = await app.claim(disasterHash);
-  console.log("Funds claimed:", claimReceipt);
-}
+//   console.log("Claiming funds...");
+//   console.log("Switching to test1...");
+//   app.switchAccount("test1");
+//   const claimReceipt = await app.claim(disasterHash);
+//   console.log("Funds claimed:", claimReceipt);
+// }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(console.error);
-}
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   main().catch(console.error);
+// }
