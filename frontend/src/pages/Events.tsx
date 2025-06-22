@@ -53,7 +53,7 @@ export default function EventsPage() {
   }, [supabase]);
 
   if (loading) {
-    return <FullScreenDivineLoader message="Loading divine events..." />;
+    return <FullScreenDivineLoader message="Loading events..." />;
   }
 
   return (

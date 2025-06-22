@@ -231,7 +231,7 @@ export default function EventDetailClient({
         {/* Loading State */}
         {loading && (
           <DivineLoader
-            message="Loading Sacred Event Details..."
+            message="Loading Details..."
             size="large"
           />
         )}

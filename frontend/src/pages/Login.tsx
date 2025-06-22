@@ -497,7 +497,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<FullScreenDivineLoader message="Preparing divine authentication..." />}>
+    <Suspense fallback={<FullScreenDivineLoader message="Preparing authentication..." />}>
       <LoginForm />
     </Suspense>
   );

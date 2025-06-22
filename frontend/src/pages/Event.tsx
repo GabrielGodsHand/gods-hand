@@ -42,7 +42,7 @@ export default function EventDetailPage() {
   }, [supabase]);
 
   if (loading) {
-    return <FullScreenDivineLoader message="Loading sacred event details..." />;
+    return <FullScreenDivineLoader message="Loading details..." />;
   }
 
   if (!id) {
