@@ -367,18 +367,19 @@ export interface Event {
 export interface Claim {
   id: string;
   event_id: string;
-  org_id: string;
+  org_id?: string;
+  organization_name?: string;
   claimed_amount: number;
   reason: string;
   claim_state: 'waiting_for_ai' | 'voting' | 'approved' | 'rejected' | 'claimed';
+  logo_url?: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface ClaimWithOrganization extends Claim {
-  organizations?: {
-    organization_name: string;
-  };
+  // This interface now extends the updated Claim interface
+  // which already includes organization_name
 }
 
 export interface Vote {

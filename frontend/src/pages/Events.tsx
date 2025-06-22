@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import EventsClient from "@/components/EventsClient";
 import { FullScreenDivineLoader } from "@/components/DivineLoader";
-import { User } from "@supabase/supabase-js";
-import { Organization, Event } from "@/lib/types/database";
+import { Event } from "@/lib/types/database";
 
 export default function EventsPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [organization, setOrganization] = useState<Organization | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -15,22 +12,6 @@ export default function EventsPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Get current user
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
-
-        // Get user's organization if logged in
-        if (user) {
-          const { data: orgData } = await supabase
-            .from("organizations")
-            .select("*")
-            .eq("user_id", user.id)
-            .single();
-          setOrganization(orgData);
-        }
-
         // Fetch events from database
         const { data: events, error } = await supabase
           .from("events")
@@ -56,7 +37,5 @@ export default function EventsPage() {
     return <FullScreenDivineLoader message="Loading events..." />;
   }
 
-  return (
-    <EventsClient user={user} organization={organization} events={events} />
-  );
+  return <EventsClient events={events} />;
 }
