@@ -40,14 +40,15 @@ export class ContractOperations {
     title: string,
     metadata: string,
     amount: number
-  ): Promise<{ receipt: TransactionReceipt; disasterHash: string }> {
+  ): Promise<{ disasterHash: string }> {
     const disasterData: DisasterData = { title, metadata };
     const disasterHash = textToField(JSON.stringify(disasterData));
     const contract = await this.getContract();
 
     const interaction = contract.methods.create_disaster(disasterHash, amount);
     const receipt = await this.walletManager.sendTransaction(interaction);
-    return { receipt, disasterHash: disasterHash.toString() };
+    console.log("Disaster created", receipt);
+    return { disasterHash: disasterHash.toString() };
   }
 
   async donate(

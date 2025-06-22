@@ -52,7 +52,7 @@ export class AztecApp {
       [
         AztecAddress.fromString(
           isSandbox
-            ? "0x0bb503afa555ece146273fe00539f4dbcc2fc42d1cb4bbbf8e5bbea04aaa9eb9"
+            ? "0x2012172dc101c48390bb7fba83cff75547532b26664f5322c61c075c1383ed77"
             : "0x2cce50c358e5b0e04c06a665216f6831edf6bdfa27d07413c291a7ba840b6299"
         ),
         AztecAddress.fromString(
@@ -98,7 +98,7 @@ export class AztecApp {
     title: string,
     metadata: string,
     amount: number
-  ): Promise<{ receipt: TransactionReceipt; disasterHash: string }> {
+  ): Promise<{ disasterHash: string }> {
     return await this.operations.createDisaster(title, metadata, amount);
   }
 

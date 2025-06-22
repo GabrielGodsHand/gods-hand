@@ -7,15 +7,15 @@ pub contract GodsHand {
     use crate::config::{Config, DisasterInfo};
     use dep::aztec::{
         event::event_interface::EventInterface,
+        keys::getters::get_public_keys,
         macros::{
             events::event,
             functions::{initializer, internal, private, public, view},
             storage::storage,
         },
         prelude::{AztecAddress, Map, PublicImmutable, PublicMutable},
-        protocol_types::traits::{Serialize, Hash, ToField},
+        protocol_types::traits::{Hash, Serialize, ToField},
         unencrypted_logs::unencrypted_event_emission::encode_event,
-        keys::getters::get_public_keys,
     };
     use std::meta::derive;
 
@@ -46,22 +46,22 @@ pub contract GodsHand {
     #[storage]
     struct Storage<Context> {
         config: PublicImmutable<Config, Context>,
-        
+
         // Disaster details
         disaster_info: Map<Field, PublicMutable<DisasterInfo, Context>, Context>,
-        
+
         // Track total donations per disaster
         total_donations: Map<Field, PublicMutable<u64, Context>, Context>,
-        
+
         // Track user donations per disaster
         user_donations: Map<Field, Map<AztecAddress, PublicMutable<u64, Context>, Context>, Context>,
-        
+
         // Track votes per disaster
         vote_count: Map<Field, PublicMutable<u64, Context>, Context>,
-        
+
         // Track unlocked funds per disaster per organization
         unlocked_funds: Map<Field, Map<AztecAddress, PublicMutable<u64, Context>, Context>, Context>,
-        
+
         // Track contract's ETH balance per disaster
         contract_balance: Map<Field, PublicMutable<u64, Context>, Context>,
     }
@@ -79,11 +79,7 @@ pub contract GodsHand {
         assert(caller == config.agent, "Only agent can create disasters");
         assert(estimated_amount > 0, "Estimated amount must be greater than 0");
 
-        let disaster_info = DisasterInfo {
-            hash: disaster_hash,
-            estimated_amount,
-            active: true,
-        };
+        let disaster_info = DisasterInfo { hash: disaster_hash, estimated_amount, active: true };
 
         storage.disaster_info.at(disaster_hash).write(disaster_info);
         storage.total_donations.at(disaster_hash).write(0);
@@ -96,18 +92,15 @@ pub contract GodsHand {
     #[private]
     fn donate(disaster_hash: Field, amount: u64) {
         assert(amount > 0, "Donation amount must be greater than 0");
+        assert(disaster_hash != 0, "Disaster hash must be non-zero");
 
         let donor = context.msg_sender();
 
         // Create nullifier to prevent double donations
         let msg_sender_npk_m_hash = get_public_keys(donor).npk_m.hash();
         let secret = context.request_nsk_app(msg_sender_npk_m_hash);
-        let nullifier = std::hash::pedersen_hash([
-            donor.to_field(),
-            secret,
-            disaster_hash,
-            amount as Field,
-        ]);
+        let nullifier =
+            std::hash::pedersen_hash([donor.to_field(), secret, disaster_hash, amount as Field]);
         context.push_nullifier(nullifier);
 
         // Call public function to process the donation
@@ -127,7 +120,7 @@ pub contract GodsHand {
         let current_total = storage.total_donations.at(disaster_hash).read();
         let current_balance = storage.contract_balance.at(disaster_hash).read();
         let current_user_donation = storage.user_donations.at(disaster_hash).at(donor).read();
-        
+
         storage.total_donations.at(disaster_hash).write(current_total + amount);
         storage.contract_balance.at(disaster_hash).write(current_balance + amount);
         storage.user_donations.at(disaster_hash).at(donor).write(current_user_donation + amount);
@@ -155,9 +148,9 @@ pub contract GodsHand {
         ]);
         context.push_nullifier(nullifier);
 
-        GodsHand::at(context.this_address())
-            ._increment_vote_count(disaster_hash)
-            .enqueue(&mut context);
+        GodsHand::at(context.this_address())._increment_vote_count(disaster_hash).enqueue(
+            &mut context,
+        );
     }
 
     #[public]
@@ -175,7 +168,7 @@ pub contract GodsHand {
     fn unlock_funds(disaster_hash: Field, org_address: AztecAddress, amount: u64) {
         let config = storage.config.read();
         let caller = context.msg_sender();
-        
+
         assert(caller == config.agent, "Only agent can unlock funds");
         assert(!org_address.is_zero(), "Invalid organization address");
         assert(amount > 0, "Amount must be greater than 0");
@@ -194,16 +187,18 @@ pub contract GodsHand {
         let current_unlocked = storage.unlocked_funds.at(disaster_hash).at(org_address).read();
         storage.unlocked_funds.at(disaster_hash).at(org_address).write(current_unlocked + amount);
 
-        FundsUnlocked { disaster_hash, organization: org_address, amount }.emit(encode_event(&mut context));
+        FundsUnlocked { disaster_hash, organization: org_address, amount }.emit(encode_event(
+            &mut context,
+        ));
     }
 
     #[private]
     fn claim(disaster_hash: Field) {
         let claimer = context.msg_sender();
 
-        GodsHand::at(context.this_address())
-            ._process_claim(disaster_hash, claimer)
-            .enqueue(&mut context);
+        GodsHand::at(context.this_address())._process_claim(disaster_hash, claimer).enqueue(
+            &mut context,
+        );
     }
 
     #[public]
@@ -220,7 +215,9 @@ pub contract GodsHand {
         storage.contract_balance.at(disaster_hash).write(current_balance - unlocked_amount);
         storage.unlocked_funds.at(disaster_hash).at(claimer).write(0);
 
-        FundsClaimed { disaster_hash, claimer, amount: unlocked_amount }.emit(encode_event(&mut context));
+        FundsClaimed { disaster_hash, claimer, amount: unlocked_amount }.emit(encode_event(
+            &mut context,
+        ));
     }
 
     #[public]
