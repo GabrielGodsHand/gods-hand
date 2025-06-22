@@ -19,6 +19,7 @@ import { getPXEServiceConfig } from "@aztec/pxe/config";
 import { createPXEService } from "@aztec/pxe/client/lazy";
 import { getDefaultInitializer } from "@aztec/stdlib/abi";
 import { getInitialTestAccounts } from "@aztec/accounts/testing";
+import { deriveMasterIncomingViewingSecretKey } from "@aztec/stdlib/keys";
 import { promises as fs } from "fs";
 import {
   AccountData,
@@ -77,25 +78,89 @@ export class WalletManager {
   }
 
   private async loadAccounts(): Promise<void> {
+    logger.info(process.env.IS_SANDBOX);
+    logger.info("Loading accounts");
     try {
-      const data = await fs.readFile(ACCOUNTS_FILE, "utf8");
-      const savedAccounts: Record<string, AccountData> = JSON.parse(data);
+      const testAccounts = JSON.parse(process.env.IS_SANDBOX || "false")
+        ? await getInitialTestAccounts()
+        : [
+            {
+              secret: Fr.fromString(
+                "0x242e865950ae8c7464d967ca18feb0bcb106a199dbbc9ee30501f54f1c3564ac"
+              ),
+              signingKey: deriveMasterIncomingViewingSecretKey(
+                Fr.fromString(
+                  "0x242e865950ae8c7464d967ca18feb0bcb106a199dbbc9ee30501f54f1c3564ac"
+                )
+              ),
+              salt: Fr.fromString(
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+              ),
+              address: AztecAddress.fromString(
+                "0x099a59ca144deac44753670349810cd333cc1083fcb635f7a0b98e6a02cdaea5"
+              ),
+            },
+            {
+              secret: Fr.fromString(
+                "0x241267a5e3db07a6c5a68c350142ee694a76dc871dbe11793996e1cfa3a3bc63"
+              ),
+              signingKey: deriveMasterIncomingViewingSecretKey(
+                Fr.fromString(
+                  "0x241267a5e3db07a6c5a68c350142ee694a76dc871dbe11793996e1cfa3a3bc63"
+                )
+              ),
+              salt: Fr.fromString(
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+              ),
+              address: AztecAddress.fromString(
+                "0x12b8da8a4fa04b12c53ab1cfd7cf0af5fb94bccd26d6112eacf509739c00f7d2"
+              ),
+            },
+            {
+              secret: Fr.fromString(
+                "0x025ddc80f7e8a780b95583b2043381ff433d84872fa01bcda812b263d791369a"
+              ),
+              signingKey: deriveMasterIncomingViewingSecretKey(
+                Fr.fromString(
+                  "0x025ddc80f7e8a780b95583b2043381ff433d84872fa01bcda812b263d791369a"
+                )
+              ),
+              salt: Fr.fromString(
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+              ),
+              address: AztecAddress.fromString(
+                "0x0d04afd01555b167610733c92b7603b6682fbaf8a848db50bea9a8a19142410b"
+              ),
+            },
+          ];
 
-      for (const [id, accountData] of Object.entries(savedAccounts)) {
-        const account = await getEcdsaRAccount(
+      logger.info(JSON.stringify(testAccounts));
+      for (const [id, accountData] of Object.entries(testAccounts)) {
+        logger.info(JSON.stringify(accountData));
+        const account = await getSchnorrAccount(
           this.pxe,
-          Fr.fromString(accountData.secretKey),
-          Buffer.from(accountData.signingKey, "hex"),
-          Fr.fromString(accountData.salt)
+          (accountData as { secret: string }).secret,
+          (accountData as { signingKey: string }).signingKey,
+          (accountData as { salt: string }).salt
         );
 
+        logger.info("Registering account");
         await account.register();
+        logger.info("Account registered");
         const wallet = (await account.getWallet()) as WalletWithAccountData;
-        wallet._accountData = accountData;
+        wallet._accountData = {
+          address: (accountData as { address: string }).address,
+          signingKey: (accountData as { signingKey: string }).signingKey,
+          secretKey: (accountData as { secret: string }).secret,
+          salt: (accountData as { salt: string }).salt,
+        };
+        logger.info("Setting account");
         this.accounts.set(id, wallet);
+        logger.info("Account set");
       }
     } catch (error) {
       logger.info("No existing accounts file found");
+      logger.error(error);
     }
   }
 
@@ -165,7 +230,58 @@ export class WalletManager {
     accountId: string,
     testIndex: number
   ): Promise<AccountWallet> {
-    const testAccounts = await getInitialTestAccounts();
+    const testAccounts = JSON.parse(process.env.IS_SANDBOX || "false")
+      ? await getInitialTestAccounts()
+      : [
+          {
+            secret: Fr.fromString(
+              "0x242e865950ae8c7464d967ca18feb0bcb106a199dbbc9ee30501f54f1c3564ac"
+            ),
+            signingKey: deriveMasterIncomingViewingSecretKey(
+              Fr.fromString(
+                "0x242e865950ae8c7464d967ca18feb0bcb106a199dbbc9ee30501f54f1c3564ac"
+              )
+            ),
+            salt: Fr.fromString(
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ),
+            address: AztecAddress.fromString(
+              "0x099a59ca144deac44753670349810cd333cc1083fcb635f7a0b98e6a02cdaea5"
+            ),
+          },
+          {
+            secret: Fr.fromString(
+              "0x241267a5e3db07a6c5a68c350142ee694a76dc871dbe11793996e1cfa3a3bc63"
+            ),
+            signingKey: deriveMasterIncomingViewingSecretKey(
+              Fr.fromString(
+                "0x241267a5e3db07a6c5a68c350142ee694a76dc871dbe11793996e1cfa3a3bc63"
+              )
+            ),
+            salt: Fr.fromString(
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ),
+            address: AztecAddress.fromString(
+              "0x12b8da8a4fa04b12c53ab1cfd7cf0af5fb94bccd26d6112eacf509739c00f7d2"
+            ),
+          },
+          {
+            secret: Fr.fromString(
+              "0x025ddc80f7e8a780b95583b2043381ff433d84872fa01bcda812b263d791369a"
+            ),
+            signingKey: deriveMasterIncomingViewingSecretKey(
+              Fr.fromString(
+                "0x025ddc80f7e8a780b95583b2043381ff433d84872fa01bcda812b263d791369a"
+              )
+            ),
+            salt: Fr.fromString(
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ),
+            address: AztecAddress.fromString(
+              "0x0d04afd01555b167610733c92b7603b6682fbaf8a848db50bea9a8a19142410b"
+            ),
+          },
+        ];
     const testAccount = testAccounts[testIndex];
 
     const account = await getSchnorrAccount(

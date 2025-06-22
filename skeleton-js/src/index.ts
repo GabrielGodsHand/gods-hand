@@ -8,10 +8,19 @@ import { config } from "dotenv";
 
 config();
 
-const NODE_URL = process.env.AZTEC_NODE_URL || "http://localhost:8080";
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
-const DEPLOYER_ADDRESS = process.env.DEPLOYER_ADDRESS;
-const DEPLOYMENT_SALT = process.env.DEPLOYMENT_SALT;
+const IS_SANDBOX = JSON.parse(process.env.IS_SANDBOX || "false");
+const NODE_URL = IS_SANDBOX
+  ? process.env.SANDBOX_AZTEC_NODE_URL
+  : process.env.TESTNET_AZTEC_NODE_URL;
+const CONTRACT_ADDRESS = IS_SANDBOX
+  ? process.env.SANDBOX_CONTRACT_ADDRESS
+  : process.env.TESTNET_CONTRACT_ADDRESS;
+const DEPLOYER_ADDRESS = IS_SANDBOX
+  ? process.env.SANDBOX_DEPLOYER_ADDRESS
+  : process.env.TESTNET_DEPLOYER_ADDRESS;
+const DEPLOYMENT_SALT = IS_SANDBOX
+  ? process.env.SANDBOX_DEPLOYMENT_SALT
+  : process.env.TESTNET_DEPLOYMENT_SALT;
 
 if (!CONTRACT_ADDRESS || !DEPLOYER_ADDRESS || !DEPLOYMENT_SALT) {
   throw new Error("Missing required environment variables");
@@ -32,13 +41,21 @@ export class AztecApp {
     console.log("Wallet manager initialized");
 
     console.log("Registering contract...");
+    const isSandbox = JSON.parse(process.env.IS_SANDBOX || "false");
     await this.walletManager.registerContract(
       GodsHandContractArtifact,
       AztecAddress.fromString(DEPLOYER_ADDRESS),
       Fr.fromString(DEPLOYMENT_SALT),
       [
         AztecAddress.fromString(
-          "0x138dd3b661a4e603aae83e52dc80dd45d453d4a93647b4124bbcb14bde64b704"
+          isSandbox
+            ? "0x1372dc4621dfe80f6f077699be434629c1fb4dd96c6d337c5f34f31b338aaed2"
+            : "0x138dd3b661a4e603aae83e52dc80dd45d453d4a93647b4124bbcb14bde64b704"
+        ),
+        AztecAddress.fromString(
+          isSandbox
+            ? "0x138dd3b661a4e603aae83e52dc80dd45d453d4a93647b4124bbcb14bde64b704"
+            : "0x0d04afd01555b167610733c92b7603b6682fbaf8a848db50bea9a8a19142410b"
         ),
         2,
       ]

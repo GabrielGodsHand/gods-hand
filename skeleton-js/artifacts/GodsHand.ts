@@ -34,7 +34,7 @@ import {
   type U128Like,
   type WrappedFieldLike,
 } from '@aztec/aztec.js';
-import GodsHandContractArtifactJson from '../../target/godshand-GodsHand.json' with { type: 'json' };
+import GodsHandContractArtifactJson from './target.json' with { type: 'json' };
 export const GodsHandContractArtifact = loadContractArtifact(GodsHandContractArtifactJson as NoirCompiledContract);
 
 
