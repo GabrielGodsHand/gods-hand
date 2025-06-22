@@ -12,8 +12,8 @@ import Header from "@/components/Header";
 import DivineLoader from "@/components/DivineLoader";
 import DecryptedText from "@/components/DecryptedText";
 import DonationModal from "@/components/DonationModal";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import RequestFundsModal from "./RequestFundsModal";
 import VotingModal from "./VotingModal";
@@ -29,7 +29,7 @@ export default function EventDetailClient({
   organization,
   eventId,
 }: EventDetailClientProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const supabase = createClient();
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -208,7 +208,7 @@ export default function EventDetailClient({
         {/* Back Button */}
         <div className="mb-6">
           <button
-            onClick={() => router.back()}
+            onClick={() => navigate(-1)}
             className="inline-flex items-center text-gray-700 hover:text-gray-900 font-['Cinzel'] transition-colors"
           >
             <svg
@@ -834,7 +834,7 @@ export default function EventDetailClient({
               ) : user && !organization ? (
                 <div className="text-center">
                   <Link
-                    href="/kyb"
+                    to="/kyb"
                     className="inline-block bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] text-xl"
                   >
                     Complete KYB Verification
@@ -847,7 +847,7 @@ export default function EventDetailClient({
               ) : (
                 <div className="text-center">
                   <Link
-                    href="/login"
+                    to="/login"
                     className="inline-block bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] text-xl"
                   >
                     Sign In to Request Funds

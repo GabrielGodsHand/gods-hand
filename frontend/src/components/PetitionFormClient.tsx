@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Organization, FundVault } from "@/lib/types/database";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface PetitionFormClientProps {
   user: User;
@@ -30,7 +30,7 @@ export default function PetitionFormClient({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const router = useRouter();
+  const navigate = useNavigate();
   const supabase = createClient();
 
   const [formData, setFormData] = useState<PetitionFormData>({
@@ -71,7 +71,7 @@ export default function PetitionFormClient({
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/events");
+        navigate("/events");
       }, 2000);
     } catch (err) {
       setError(
@@ -148,7 +148,7 @@ export default function PetitionFormClient({
         {/* Header */}
         <div className="mb-12">
           <button
-            onClick={() => router.back()}
+            onClick={() => navigate(-1)}
             className="text-gray-800 hover:text-gray-900 mb-6 flex items-center bg-white/20 backdrop-blur-md rounded-full px-4 py-2 transition-all duration-300 font-['Cinzel']"
           >
             <svg
@@ -352,7 +352,7 @@ export default function PetitionFormClient({
             <div className="flex justify-between items-center pt-8">
               <button
                 type="button"
-                onClick={() => router.back()}
+                onClick={() => navigate(-1)}
                 className="px-8 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all duration-300 font-semibold font-['Cinzel'] shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
               >
                 Cancel

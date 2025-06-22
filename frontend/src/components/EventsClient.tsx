@@ -2,27 +2,12 @@
 
 import { Organization, Event } from "@/lib/types/database";
 import { User } from "@supabase/supabase-js";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import TiltedCard from "@/components/TiltedCard";
 import DivineLoader from "@/components/DivineLoader";
-import dynamic from "next/dynamic";
-
-// Dynamically import InteractiveGlobe to avoid SSR issues
-const InteractiveGlobe = dynamic(
-  () => import("@/components/InteractiveGlobe"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="relative w-full h-96 bg-black rounded-lg overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-          <DivineLoader message="Loading Divine Globe..." size="large" />
-        </div>
-      </div>
-    ),
-  }
-);
+import InteractiveGlobe from "@/components/InteractiveGlobe";
 
 interface EventsClientProps {
   user: User | null;
@@ -44,7 +29,7 @@ export default function EventsClient({
   organization,
   events,
 }: EventsClientProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // Consistent date formatting function to avoid hydration mismatch
   const formatDate = (dateString: string) => {
@@ -350,7 +335,7 @@ export default function EventsClient({
 
   const handleEventClick = (eventId: string) => {
     // Navigate to event detail page
-    router.push(`/event/${eventId}`);
+    navigate(`/event/${eventId}`);
   };
 
   return (
@@ -589,13 +574,13 @@ export default function EventsClient({
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/login"
+                to="/login"
                 className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#ffd700] to-[#ffed4e] text-gray-900 font-bold text-lg rounded-xl hover:from-[#ffed4e] hover:to-[#ffd700] transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
               >
                 Begin Sacred Journey
               </Link>
               <Link
-                href="/"
+                to="/"
                 className="inline-flex items-center px-10 py-5 bg-gray-900 hover:bg-gray-800 text-white font-bold text-lg rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
               >
                 Discover Our Mission
@@ -612,19 +597,19 @@ export default function EventsClient({
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Link
-                href="/kyb"
+                to="/kyb"
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
               >
                 Sacred Registry
               </Link>
               <Link
-                href="/petitions"
+                to="/petitions"
                 className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
               >
                 Divine Petitions
               </Link>
               <Link
-                href="/documents"
+                to="/documents"
                 className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
               >
                 Sacred Scrolls

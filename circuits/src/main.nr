@@ -5,7 +5,28 @@ global HONK_IDENTIFIER: u32 = 1;
 fn main(
     verification_key: [Field; HONK_VK_SIZE],
     proof: [Field; HONK_PROOF_SIZE],
-    public_inputs: pub [Field; 1],
-) {
-    std::verify_proof_with_type(verification_key, proof, public_inputs, 0x0, HONK_IDENTIFIER);
+    public_inputs: pub [Field; 5], // Adjust size based on your proof's public inputs
+    vkey_hash: Field,
+    expected_min_age: pub Field,
+    expected_current_date: pub Field,
+) -> pub Field {
+    // Verify the zkPassport proof
+    std::verify_proof_with_type(
+        verification_key,
+        proof,
+        public_inputs,
+        vkey_hash,
+        HONK_IDENTIFIER,
+    );
+
+    // Extract useful information from public inputs
+    // (You'll need to adjust indices based on your proof structure)
+    let verified_age_check = public_inputs[0]; // or wherever the age result is
+    let nullifier = public_inputs[4]; // or wherever the nullifier/zkID is
+
+    // Additional validations if needed
+    // assert(some_condition);
+
+    // Return the nullifier as proof of successful verification
+    nullifier
 }

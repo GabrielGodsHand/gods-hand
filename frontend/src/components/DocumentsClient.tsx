@@ -2,7 +2,7 @@
 
 import { User } from "@supabase/supabase-js";
 import { Organization, KYBDocument } from "@/lib/types/database";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface DocumentsClientProps {
   user: User;
@@ -14,7 +14,7 @@ export default function DocumentsClient({
   organization,
   documents,
 }: DocumentsClientProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -57,7 +57,7 @@ export default function DocumentsClient({
         {/* Header */}
         <div className="mb-12">
           <button
-            onClick={() => router.push("/events")}
+            onClick={() => navigate("/events")}
             className="text-gray-800 hover:text-gray-900 mb-6 flex items-center bg-white/20 backdrop-blur-md rounded-full px-4 py-2 transition-all duration-300 font-['Cinzel']"
           >
             <svg
@@ -113,7 +113,7 @@ export default function DocumentsClient({
               form to upload required documents.
             </p>
             <button
-              onClick={() => router.push("/kyb")}
+              onClick={() => navigate("/kyb")}
               className="bg-gradient-to-r from-[#ffd700] to-[#ffed4e] hover:from-[#ffed4e] hover:to-[#ffd700] text-gray-900 px-8 py-4 rounded-xl font-semibold font-['Cinzel'] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
             >
               Complete KYB Form
@@ -247,7 +247,7 @@ export default function DocumentsClient({
               documents through the KYB form.
             </p>
             <button
-              onClick={() => router.push("/kyb")}
+              onClick={() => navigate("/kyb")}
               className="bg-gradient-to-r from-[#ffd700] to-[#ffed4e] hover:from-[#ffed4e] hover:to-[#ffd700] text-gray-900 px-8 py-4 rounded-xl font-semibold font-['Cinzel'] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
             >
               Update KYB Information

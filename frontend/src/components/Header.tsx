@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -10,7 +10,7 @@ const Header: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const navigate = useNavigate();
   const supabase = createClient();
 
   useEffect(() => {
@@ -71,20 +71,20 @@ const Header: React.FC = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setDropdownOpen(false);
-    router.push("/");
+    navigate("/");
   };
 
   const handleDashboard = () => {
     setDropdownOpen(false);
-    router.push("/events");
+    navigate("/events");
   };
 
   const handleLogin = () => {
-    router.push("/login");
+    navigate("/login");
   };
 
   const handleLogoClick = () => {
-    router.push("/");
+    navigate("/");
   };
 
   return (

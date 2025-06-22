@@ -11,7 +11,7 @@ import {
   INDUSTRY_SECTORS,
   KYB_DOCUMENT_TYPES,
 } from "@/lib/types/database";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 
 interface KYBFormClientProps {
   user: User;
@@ -87,7 +87,7 @@ export default function KYBFormClient({
     },
   ]);
 
-  const router = useRouter();
+  const navigate = useNavigate();
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -297,7 +297,7 @@ export default function KYBFormClient({
         if (docError) throw docError;
       }
 
-      router.push("/events");
+      navigate("/events");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -1252,7 +1252,7 @@ export default function KYBFormClient({
       {/* Back to Events Button */}
       <div className="absolute top-6 left-6 z-20">
         <button
-          onClick={() => router.push("/events")}
+          onClick={() => navigate("/events")}
           className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-gray-800 hover:bg-white/30 transition-all duration-300 text-sm font-medium font-['Cinzel']"
         >
           <svg
