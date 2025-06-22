@@ -40,7 +40,7 @@ app.post("/disaster", async (req: Request, res: Response) => {
 // Unlock funds endpoint
 app.post("/unlock-funds", async (req: Request, res: Response) => {
   try {
-    const { disasterHash, organizationAddress, amount, accountId } = req.body;
+    const { disasterHash, organizationAddress, amount } = req.body;
 
     if (!disasterHash || !organizationAddress || !amount) {
       return res.status(400).json({
@@ -49,14 +49,68 @@ app.post("/unlock-funds", async (req: Request, res: Response) => {
       });
     }
 
-    if (accountId) {
-      aztecApp.switchAccount(accountId);
-    }
+    const isSandbox = JSON.parse(process.env.IS_SANDBOX || "false");
+    aztecApp.switchAccount(isSandbox ? "1" : "2");
 
     const receipt = await aztecApp.unlockFunds(
       disasterHash,
       organizationAddress,
       amount
+    );
+    res.json({ receipt });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Donate endpoint
+app.post("/donate", async (req: Request, res: Response) => {
+  try {
+    const { disasterHash, amount } = req.body;
+
+    if (!disasterHash || !amount) {
+      return res.status(400).json({
+        error: "Missing required fields: disasterHash, amount",
+      });
+    }
+
+    const isSandbox = JSON.parse(process.env.IS_SANDBOX || "false");
+    aztecApp.switchAccount(isSandbox ? "1" : "2");
+
+    const receipt = await aztecApp.donate(disasterHash, amount);
+    res.json({ receipt });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Vote endpoint
+app.post("/vote", async (req: Request, res: Response) => {
+  try {
+    const { disasterHash, organizationAddress, voteType } = req.body;
+
+    if (
+      !disasterHash ||
+      !organizationAddress ||
+      (voteType !== 0 && voteType !== 1)
+    ) {
+      return res.status(400).json({
+        error:
+          "Missing required fields: disasterHash, organizationAddress, voteType (0 or 1)",
+      });
+    }
+
+    const isSandbox = JSON.parse(process.env.IS_SANDBOX || "false");
+    aztecApp.switchAccount(isSandbox ? "1" : "2");
+
+    const receipt = await aztecApp.vote(
+      disasterHash,
+      organizationAddress,
+      voteType
     );
     res.json({ receipt });
   } catch (error) {

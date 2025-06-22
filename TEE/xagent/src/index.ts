@@ -1,12 +1,19 @@
 import { elizaLogger, stringToUuid, type Character } from "@elizaos/core";
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 import { loadEnv } from "./config/env.js";
 import { character } from "./character.ts";
-import { getTokenForProvider, loadCharacters, parseArguments } from "./config/index.ts";
-import https from 'https';
-import readline from 'readline';
-import { createClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  getTokenForProvider,
+  loadCharacters,
+  parseArguments,
+} from "./config/index.ts";
+import https from "https";
+import readline from "readline";
+import { createClient } from "@supabase/supabase-js";
+import { v4 as uuidv4 } from "uuid";
 
 // Custom fetch implementation using built-in https module
 function customFetch(url: string, options: any = {}): Promise<any> {
@@ -15,42 +22,42 @@ function customFetch(url: string, options: any = {}): Promise<any> {
     const reqOptions = {
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
-      method: options.method || 'GET',
-      headers: options.headers || {}
+      method: options.method || "GET",
+      headers: options.headers || {},
     };
 
     const req = https.request(reqOptions, (res) => {
-      let data = '';
-      res.on('data', (chunk) => {
+      let data = "";
+      res.on("data", (chunk) => {
         data += chunk;
       });
-      
-      res.on('end', () => {
+
+      res.on("end", () => {
         resolve({
           ok: res.statusCode >= 200 && res.statusCode < 300,
           status: res.statusCode,
           statusText: res.statusMessage,
           json: () => Promise.resolve(JSON.parse(data)),
-          text: () => Promise.resolve(data)
+          text: () => Promise.resolve(data),
         });
       });
     });
-    
-    req.on('error', (error) => {
+
+    req.on("error", (error) => {
       reject(error);
     });
-    
+
     if (options.body) {
       req.write(options.body);
     }
-    
+
     req.end();
   });
 }
 
 // Supabase client setup
-const SUPABASE_URL = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-const SUPABASE_KEY = 'xxxxxxxxxxxxxxxxxxxxxx';
+const SUPABASE_URL = "xxxxxxxxxxxxxxxx";
+const SUPABASE_KEY = "xxxxxxxxxxxxxxxxxxxx";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -62,13 +69,13 @@ async function insertDisasterEvent(data: {
   amount: number;
   source: string;
   tweetId?: string;
+  disasterHash?: string;
 }): Promise<void> {
   try {
-    console.log('📊 Inserting disaster event into database...');
-    
-    const { data: insertedData, error } = await supabase
-      .from('events')
-      .insert([{
+    console.log("📊 Inserting disaster event into database...");
+
+    const { data: insertedData, error } = await supabase.from("events").insert([
+      {
         id: uuidv4(),
         disaster_location: data.location,
         created_at: new Date().toISOString(),
@@ -77,16 +84,18 @@ async function insertDisasterEvent(data: {
         estimated_amount_required: data.amount,
         source: data.source,
         tweet_id: data.tweetId || null,
-        updated_at: new Date().toISOString()
-      }]);
+        disaster_hash: data.disasterHash || null,
+        updated_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
-      console.error('❌ Database insert error:', error);
+      console.error("❌ Database insert error:", error);
     } else {
-      console.log('✅ Database insert successful:', insertedData);
+      console.log("✅ Database insert successful:", insertedData);
     }
   } catch (error) {
-    console.error('❌ Failed to insert disaster event:', error);
+    console.error("❌ Failed to insert disaster event:", error);
   }
 }
 
@@ -95,77 +104,184 @@ async function postTweet(content: string): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
       const payload = JSON.stringify({ content });
-      
+
       console.log("📡 Preparing Twitter API request...");
-      console.log("🔗 API Endpoint: https://twitterapi-e53e.onrender.com/tweet");
+      console.log(
+        "🔗 API Endpoint: https://twitterapi-e53e.onrender.com/tweet"
+      );
       console.log("📦 Payload size:", Buffer.byteLength(payload), "bytes");
-      
+
       const options = {
-        hostname: 'twitterapi-e53e.onrender.com',
-        path: '/tweet',
-        method: 'POST',
+        hostname: "twitterapi-e53e.onrender.com",
+        path: "/tweet",
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload)
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload),
         },
-        timeout: 30000 // 30 second timeout
+        timeout: 30000, // 30 second timeout
       };
-      
+
       console.log("🚀 Sending request to Twitter API...");
       const startTime = Date.now();
-      
+
       const req = https.request(options, (res) => {
-        console.log(`📥 Received response: HTTP ${res.statusCode} ${res.statusMessage}`);
-        console.log(`📋 Response headers:`, JSON.stringify(res.headers, null, 2));
-        
-        let data = '';
-        
-        res.on('data', (chunk) => {
+        console.log(
+          `📥 Received response: HTTP ${res.statusCode} ${res.statusMessage}`
+        );
+        console.log(
+          `📋 Response headers:`,
+          JSON.stringify(res.headers, null, 2)
+        );
+
+        let data = "";
+
+        res.on("data", (chunk) => {
           data += chunk;
         });
-        
-        res.on('end', () => {
+
+        res.on("end", () => {
           const responseTime = Date.now() - startTime;
           console.log(`⏱️ Response time: ${responseTime}ms`);
           console.log(`📄 Raw response data: ${data}`);
-          
+
           if (res.statusCode >= 200 && res.statusCode < 300) {
             try {
               const result = JSON.parse(data);
-              console.log('✅ Tweet posted successfully!');
+              console.log("✅ Tweet posted successfully!");
               resolve(result);
             } catch (parseError) {
-              console.error('❌ Error parsing Twitter API response:', parseError);
-              console.error('📄 Raw response that failed to parse:', data);
-              reject(new Error('Failed to parse Twitter API response'));
+              console.error(
+                "❌ Error parsing Twitter API response:",
+                parseError
+              );
+              console.error("📄 Raw response that failed to parse:", data);
+              reject(new Error("Failed to parse Twitter API response"));
             }
           } else {
-            console.error(`❌ Twitter API error: HTTP ${res.statusCode} ${res.statusMessage}`);
-            console.error('📄 Error response body:', data);
-            reject(new Error(`Twitter API error: ${res.statusCode} ${res.statusMessage}`));
+            console.error(
+              `❌ Twitter API error: HTTP ${res.statusCode} ${res.statusMessage}`
+            );
+            console.error("📄 Error response body:", data);
+            reject(
+              new Error(
+                `Twitter API error: ${res.statusCode} ${res.statusMessage}`
+              )
+            );
           }
         });
       });
-      
-      req.on('error', (error) => {
-        console.error('❌ Network error sending request to Twitter API:', error);
-        console.error('📋 Error details:', error.message);
+
+      req.on("error", (error) => {
+        console.error(
+          "❌ Network error sending request to Twitter API:",
+          error
+        );
+        console.error("📋 Error details:", error.message);
         reject(error);
       });
-      
-      req.on('timeout', () => {
-        console.error('⏱️ Twitter API request timed out after 30 seconds');
+
+      req.on("timeout", () => {
+        console.error("⏱️ Twitter API request timed out after 30 seconds");
         req.destroy();
-        reject(new Error('Twitter API request timed out'));
+        reject(new Error("Twitter API request timed out"));
       });
-      
+
       console.log("📤 Sending payload to Twitter API...");
       req.write(payload);
       req.end();
       console.log("📤 Request sent, waiting for response...");
     } catch (error) {
-      console.error('❌ Error in postTweet function:', error);
-      console.error('📋 Error stack:', error.stack);
+      console.error("❌ Error in postTweet function:", error);
+      console.error("📋 Error stack:", error.stack);
+      reject(error);
+    }
+  });
+}
+
+// Function to create a disaster relief fund via API
+async function createDisasterReliefFund(data: {
+  title: string;
+  metadata: string;
+  amount: number;
+}): Promise<any> {
+  return new Promise((resolve, reject) => {
+    try {
+      const payload = JSON.stringify(data);
+
+      console.log("📡 Preparing Disaster Relief API request...");
+      console.log(
+        "🔗 API Endpoint: https://acer-legislation-rock-confidentiality.trycloudflare.com/disaster"
+      );
+      console.log("📦 Payload:", payload);
+
+      const options = {
+        hostname: "acer-legislation-rock-confidentiality.trycloudflare.com",
+        path: "/disaster",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload),
+        },
+        timeout: 30000, // 30 second timeout
+      };
+
+      console.log("🚀 Sending request to Disaster Relief API...");
+      const startTime = Date.now();
+
+      const req = https.request(options, (res) => {
+        console.log(
+          `📥 Received response: HTTP ${res.statusCode} ${res.statusMessage}`
+        );
+
+        let data = "";
+
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+
+        res.on("end", () => {
+          const responseTime = Date.now() - startTime;
+          console.log(`⏱️ Response time: ${responseTime}ms`);
+
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              const result = JSON.parse(data);
+              console.log("✅ Disaster relief fund created successfully!");
+              resolve(result);
+            } catch (parseError) {
+              console.error("❌ Error parsing API response:", parseError);
+              console.error("📄 Raw response that failed to parse:", data);
+              reject(new Error("Failed to parse API response"));
+            }
+          } else {
+            console.error(
+              `❌ API error: HTTP ${res.statusCode} ${res.statusMessage}`
+            );
+            console.error("📄 Error response body:", data);
+            reject(
+              new Error(`API error: ${res.statusCode} ${res.statusMessage}`)
+            );
+          }
+        });
+      });
+
+      req.on("error", (error) => {
+        console.error("❌ Network error sending request to API:", error);
+        reject(error);
+      });
+
+      req.on("timeout", () => {
+        console.error("⏱️ API request timed out after 30 seconds");
+        req.destroy();
+        reject(new Error("API request timed out"));
+      });
+
+      req.write(payload);
+      req.end();
+      console.log("📤 Request sent, waiting for response...");
+    } catch (error) {
+      console.error("❌ Error in createDisasterReliefFund function:", error);
       reject(error);
     }
   });
@@ -176,28 +292,28 @@ loadEnv();
 
 const config = {
   awsCredentials: {
-    accessKeyId: 'xxxxxxxxxxxxxxx',
-    secretAccessKey: 'xxxxxxxxxxxxxxxxx',
-    region: 'us-east-1'
+    accessKeyId: "xxxxxxxxxxxxxxxxxxx",
+    secretAccessKey: "xxxxxxxxxxxxxxxxxxxxxx",
+    region: "us-east-1",
   },
   modelSettings: {
-    modelId: 'amazon.nova-lite-v1:0',
+    modelId: "amazon.nova-lite-v1:0",
     inferenceConfig: {
       maxTokens: 1000,
       temperature: 0.7,
-      topP: 0.9
-    }
+      topP: 0.9,
+    },
   },
   googleSearch: {
-    developerKey: 'xxxxxxxxxxxxxxxxxxxxx',
-    searchEngineId: 'xxxxxxxxxxxxxxxxxxxxxx'
+    developerKey: "xxxxxxxxxxxxxxxxxxxx",
+    searchEngineId: "xxxxxxxxxxxxxxx",
   },
   weatherXM: {
-    apiKey: 'xxxxxxxxxxxxxxxxxxxxxx'
+    apiKey: "xxxxxxxxxxxxxxxxxxxx",
   },
   geoapify: {
-    apiKey: 'xxxxxxxxxxxxxxxxxxxxxxx'
-  }
+    apiKey: "xxxxxxxxxxxxxxxxxxxxxxxx",
+  },
 };
 
 // Google Search functionality
@@ -208,28 +324,30 @@ class GoogleSearch {
     try {
       const encodedQuery = encodeURIComponent(query);
       const url = `https://www.googleapis.com/customsearch/v1?key=${config.googleSearch.developerKey}&cx=${config.googleSearch.searchEngineId}&q=${encodedQuery}`;
-      
+
       return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
-          let data = '';
-          
-          res.on('data', (chunk) => {
-            data += chunk;
+        https
+          .get(url, (res) => {
+            let data = "";
+
+            res.on("data", (chunk) => {
+              data += chunk;
+            });
+
+            res.on("end", () => {
+              try {
+                const response = JSON.parse(data);
+                resolve(response.items || []);
+              } catch (parseError) {
+                elizaLogger.error("Error parsing search response:", parseError);
+                resolve([]);
+              }
+            });
+          })
+          .on("error", (error) => {
+            elizaLogger.error("Google search error:", error);
+            resolve([]);
           });
-          
-          res.on('end', () => {
-            try {
-              const response = JSON.parse(data);
-              resolve(response.items || []);
-            } catch (parseError) {
-              elizaLogger.error("Error parsing search response:", parseError);
-              resolve([]);
-            }
-          });
-        }).on('error', (error) => {
-          elizaLogger.error("Google search error:", error);
-          resolve([]);
-        });
       });
     } catch (error) {
       elizaLogger.error("Google search error:", error);
@@ -247,8 +365,8 @@ class DisasterAssessmentSystem {
       region: config.awsCredentials.region,
       credentials: {
         accessKeyId: config.awsCredentials.accessKeyId,
-        secretAccessKey: config.awsCredentials.secretAccessKey
-      }
+        secretAccessKey: config.awsCredentials.secretAccessKey,
+      },
     });
   }
 
@@ -261,21 +379,21 @@ Location:`;
 
     const input = {
       modelId: config.modelSettings.modelId,
-      contentType: 'application/json',
-      accept: 'application/json',
+      contentType: "application/json",
+      accept: "application/json",
       body: JSON.stringify({
         messages: [
           {
             role: "user",
             content: [
               {
-                text: prompt
-              }
-            ]
-          }
+                text: prompt,
+              },
+            ],
+          },
         ],
-        inferenceConfig: config.modelSettings.inferenceConfig
-      })
+        inferenceConfig: config.modelSettings.inferenceConfig,
+      }),
     };
 
     try {
@@ -288,11 +406,13 @@ Location:`;
     }
   }
 
-     async geocode(area: string): Promise<any> {
-     const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(area)}&apiKey=${config.geoapify.apiKey}`;
- 
-     const res = await customFetch(url);
-     const data = await res.json();
+  async geocode(area: string): Promise<any> {
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
+      area
+    )}&apiKey=${config.geoapify.apiKey}`;
+
+    const res = await customFetch(url);
+    const data = await res.json();
 
     if (!data.features?.length) {
       throw new Error("No location data found");
@@ -311,25 +431,25 @@ Location:`;
       min_latitude: minLat,
       max_latitude: maxLat,
       min_longitude: minLon,
-      max_longitude: maxLon
+      max_longitude: maxLon,
     };
   }
 
-     async getWeatherStations(bbox: any): Promise<any[]> {
-     const url = `https://pro.weatherxm.com/api/v1/stations/bounds?min_lat=${bbox.min_latitude}&max_lat=${bbox.max_latitude}&min_lon=${bbox.min_longitude}&max_lon=${bbox.max_longitude}`;
-     
-     const res = await customFetch(url, {
-       headers: {
-         'X-API-KEY': config.weatherXM.apiKey
-       }
-     });
+  async getWeatherStations(bbox: any): Promise<any[]> {
+    const url = `https://pro.weatherxm.com/api/v1/stations/bounds?min_lat=${bbox.min_latitude}&max_lat=${bbox.max_latitude}&min_lon=${bbox.min_longitude}&max_lon=${bbox.max_longitude}`;
+
+    const res = await customFetch(url, {
+      headers: {
+        "X-API-KEY": config.weatherXM.apiKey,
+      },
+    });
 
     if (!res.ok) {
       throw new Error(`WeatherXM API error: ${res.status} ${res.statusText}`);
     }
 
     const data = await res.json();
-    
+
     if (!data.stations) {
       throw new Error("No stations data found in response");
     }
@@ -337,17 +457,19 @@ Location:`;
     return data.stations.filter((station: any) => station.lastDayQod > 0);
   }
 
-     async getStationLatestData(stationId: string): Promise<any> {
-     const url = `https://pro.weatherxm.com/api/v1/stations/${stationId}/latest`;
-     
-     const res = await customFetch(url, {
-       headers: {
-         'X-API-KEY': config.weatherXM.apiKey
-       }
-     });
+  async getStationLatestData(stationId: string): Promise<any> {
+    const url = `https://pro.weatherxm.com/api/v1/stations/${stationId}/latest`;
+
+    const res = await customFetch(url, {
+      headers: {
+        "X-API-KEY": config.weatherXM.apiKey,
+      },
+    });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch data for station ${stationId}: ${res.status} ${res.statusText}`);
+      throw new Error(
+        `Failed to fetch data for station ${stationId}: ${res.status} ${res.statusText}`
+      );
     }
 
     return await res.json();
@@ -357,50 +479,57 @@ Location:`;
     const selectedStations = stations
       .sort(() => 0.5 - Math.random())
       .slice(0, 5);
-    
-    const stationDataPromises = selectedStations.map((station: any) => 
+
+    const stationDataPromises = selectedStations.map((station: any) =>
       this.getStationLatestData(station.id)
     );
-    
+
     const results = await Promise.allSettled(stationDataPromises);
-    
+
     const successfulResults = [];
     const failedResults = [];
-    
+
     results.forEach((result: any, index: number) => {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         successfulResults.push({
           stationId: selectedStations[index].id,
           stationName: selectedStations[index].name,
-          data: result.value
+          data: result.value,
         });
       } else {
         failedResults.push({
           stationId: selectedStations[index].id,
-          error: result.reason.message
+          error: result.reason.message,
         });
       }
     });
-    
+
     return {
       successful: successfulResults,
-      failed: failedResults
+      failed: failedResults,
     };
   }
 
-  async evaluateDisasterAndCalculateRelief(newsText: string, weatherData: any[]): Promise<any> {
+  async evaluateDisasterAndCalculateRelief(
+    newsText: string,
+    weatherData: any[]
+  ): Promise<any> {
     const weatherSummary = weatherData.map((station: any) => {
       return {
         name: station.stationName,
         id: station.stationId,
-        data: station.data
+        data: station.data,
       };
     });
 
     const prompt = `You are a disaster assessment expert. Analyze the following:
 
 1. NEWS REPORT: "${newsText}"
-2. WEATHER DATA FROM ${weatherData.length} STATIONS: ${JSON.stringify(weatherSummary, null, 2)}
+2. WEATHER DATA FROM ${weatherData.length} STATIONS: ${JSON.stringify(
+      weatherSummary,
+      null,
+      2
+    )}
 
 Perform a DETAILED assessment including:
 - Current weather conditions across all stations
@@ -420,37 +549,37 @@ ONLY RETURN THE JSON OBJECT, NO ADDITIONAL TEXT.`;
 
     const input = {
       modelId: config.modelSettings.modelId,
-      contentType: 'application/json',
-      accept: 'application/json',
+      contentType: "application/json",
+      accept: "application/json",
       body: JSON.stringify({
         messages: [
           {
             role: "user",
             content: [
               {
-                text: prompt
-              }
-            ]
-          }
+                text: prompt,
+              },
+            ],
+          },
         ],
         inferenceConfig: {
           maxTokens: 1000,
           temperature: 0.5,
-          topP: 0.9
-        }
-      })
+          topP: 0.9,
+        },
+      }),
     };
 
     try {
       const command = new InvokeModelCommand(input);
       const response = await this.bedrockClient.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-      
+
       const resultText = responseBody.output.message.content[0].text.trim();
-      const jsonStart = resultText.indexOf('{');
-      const jsonEnd = resultText.lastIndexOf('}') + 1;
+      const jsonStart = resultText.indexOf("{");
+      const jsonEnd = resultText.lastIndexOf("}") + 1;
       const jsonString = resultText.slice(jsonStart, jsonEnd);
-      
+
       return JSON.parse(jsonString);
     } catch (error) {
       throw new Error(`Disaster evaluation error: ${error.message}`);
@@ -458,30 +587,48 @@ ONLY RETURN THE JSON OBJECT, NO ADDITIONAL TEXT.`;
   }
 
   async displayWeatherData(stationData: any): Promise<void> {
-    console.log(`\nStation: ${stationData.stationName} (${stationData.stationId})`);
-    console.log('------------------------------------------------');
-    console.log('Observation:');
+    console.log(
+      `\nStation: ${stationData.stationName} (${stationData.stationId})`
+    );
+    console.log("------------------------------------------------");
+    console.log("Observation:");
     console.log(`- Timestamp: ${stationData.data.observation.timestamp}`);
     console.log(`- Temperature: ${stationData.data.observation.temperature}°C`);
     console.log(`- Feels Like: ${stationData.data.observation.feels_like}°C`);
     console.log(`- Dew Point: ${stationData.data.observation.dew_point}°C`);
-    console.log(`- Precipitation Rate: ${stationData.data.observation.precipitation_rate} mm/h`);
-    console.log(`- Accumulated Precipitation: ${stationData.data.observation.precipitation_accumulated} mm`);
+    console.log(
+      `- Precipitation Rate: ${stationData.data.observation.precipitation_rate} mm/h`
+    );
+    console.log(
+      `- Accumulated Precipitation: ${stationData.data.observation.precipitation_accumulated} mm`
+    );
     console.log(`- Humidity: ${stationData.data.observation.humidity}%`);
-    console.log(`- Wind Speed: ${stationData.data.observation.wind_speed} km/h`);
+    console.log(
+      `- Wind Speed: ${stationData.data.observation.wind_speed} km/h`
+    );
     console.log(`- Wind Gust: ${stationData.data.observation.wind_gust} km/h`);
-    console.log(`- Wind Direction: ${stationData.data.observation.wind_direction}°`);
+    console.log(
+      `- Wind Direction: ${stationData.data.observation.wind_direction}°`
+    );
     console.log(`- UV Index: ${stationData.data.observation.uv_index}`);
     console.log(`- Pressure: ${stationData.data.observation.pressure} hPa`);
-    console.log(`- Solar Irradiance: ${stationData.data.observation.solar_irradiance} W/m²`);
+    console.log(
+      `- Solar Irradiance: ${stationData.data.observation.solar_irradiance} W/m²`
+    );
     console.log(`- Weather Icon: ${stationData.data.observation.icon}`);
 
-    console.log('\nHealth Data:');
-    console.log(`- Data Quality Score: ${stationData.data.health.data_quality.score}`);
-    console.log(`- Location Quality Score: ${stationData.data.health.location_quality.score}`);
-    console.log(`- Location Quality Reason: ${stationData.data.health.location_quality.reason}`);
+    console.log("\nHealth Data:");
+    console.log(
+      `- Data Quality Score: ${stationData.data.health.data_quality.score}`
+    );
+    console.log(
+      `- Location Quality Score: ${stationData.data.health.location_quality.score}`
+    );
+    console.log(
+      `- Location Quality Reason: ${stationData.data.health.location_quality.reason}`
+    );
 
-    console.log('\nLocation:');
+    console.log("\nLocation:");
     console.log(`- Latitude: ${stationData.data.location.lat}`);
     console.log(`- Longitude: ${stationData.data.location.lon}`);
     console.log(`- Elevation: ${stationData.data.location.elevation} meters`);
@@ -489,54 +636,68 @@ ONLY RETURN THE JSON OBJECT, NO ADDITIONAL TEXT.`;
 
   async assessDisaster(newsText: string): Promise<any> {
     try {
-      console.log('\n🌍 Extracting location from news...');
+      console.log("\n🌍 Extracting location from news...");
       const location = await this.extractLocationFromNews(newsText);
       console.log(`📍 Extracted location: ${location}`);
-      
-      console.log('\n🗺️ Getting coordinates...');
+
+      console.log("\n🗺️ Getting coordinates...");
       const coordinates = await this.geocode(location);
       console.log(`📌 Bounding Box:`, coordinates);
-      
-      console.log('\n⛅ Fetching weather stations...');
+
+      console.log("\n⛅ Fetching weather stations...");
       const activeStations = await this.getWeatherStations(coordinates);
       console.log(`📡 Found ${activeStations.length} active weather stations`);
-      
+
       if (activeStations.length > 0) {
-        console.log('\n📡 Fetching latest weather data for up to 5 stations...');
-        const { successful, failed } = await this.getMultipleStationsLatestData(activeStations);
-        
-        console.log(`\n✅ Successfully fetched data for ${successful.length} stations:`);
+        console.log(
+          "\n📡 Fetching latest weather data for up to 5 stations..."
+        );
+        const { successful, failed } = await this.getMultipleStationsLatestData(
+          activeStations
+        );
+
+        console.log(
+          `\n✅ Successfully fetched data for ${successful.length} stations:`
+        );
         for (const station of successful) {
           await this.displayWeatherData(station);
         }
-        
+
         if (failed.length > 0) {
-          console.log(`\n❌ Failed to fetch data for ${failed.length} stations:`);
+          console.log(
+            `\n❌ Failed to fetch data for ${failed.length} stations:`
+          );
           failed.forEach((failure: any) => {
-            console.log(`- Station ID: ${failure.stationId}, Error: ${failure.error}`);
+            console.log(
+              `- Station ID: ${failure.stationId}, Error: ${failure.error}`
+            );
           });
         }
-        
+
         if (successful.length > 0) {
-          console.log('\n🔍 Evaluating disaster and calculating relief fund...');
+          console.log(
+            "\n🔍 Evaluating disaster and calculating relief fund..."
+          );
           const assessment = await this.evaluateDisasterAndCalculateRelief(
-            newsText, 
+            newsText,
             successful.map((s: any) => s.data)
           );
-          
-          console.log('\n📊 FINAL DISASTER ASSESSMENT:');
-          console.log('=============================');
-          console.log(`💰 ESTIMATED RELIEF FUND NEEDED: $${assessment.relief_fund}`);
-          console.log('\n📝 DETAILED REASONING:');
+
+          console.log("\n📊 FINAL DISASTER ASSESSMENT:");
+          console.log("=============================");
+          console.log(
+            `💰 ESTIMATED RELIEF FUND NEEDED: $${assessment.relief_fund}`
+          );
+          console.log("\n📝 DETAILED REASONING:");
           console.log(assessment.reasoning);
-          
+
           return assessment;
         }
       } else {
-        console.log('No active weather stations found in this area.');
+        console.log("No active weather stations found in this area.");
       }
     } catch (error) {
-      console.error('Error in disaster assessment:', error.message);
+      console.error("Error in disaster assessment:", error.message);
       throw error;
     }
   }
@@ -554,15 +715,15 @@ class DisasterTweetBot {
     this.character = character;
     this.googleSearch = new GoogleSearch();
     this.disasterAssessment = new DisasterAssessmentSystem();
-    
+
     this.bedrockClient = new BedrockRuntimeClient({
       region: config.awsCredentials.region,
       credentials: {
         accessKeyId: config.awsCredentials.accessKeyId,
-        secretAccessKey: config.awsCredentials.secretAccessKey
-      }
+        secretAccessKey: config.awsCredentials.secretAccessKey,
+      },
     });
-    
+
     if (this.character.settings && (this.character.settings as any).modelId) {
       config.modelSettings.modelId = (this.character.settings as any).modelId;
     }
@@ -570,45 +731,59 @@ class DisasterTweetBot {
 
   async verifyBedrockConnectivity(): Promise<boolean> {
     try {
-      console.log(`🔍 Testing Bedrock access with ${config.modelSettings.modelId}...`);
-      
+      console.log(
+        `🔍 Testing Bedrock access with ${config.modelSettings.modelId}...`
+      );
+
       const testPayload = {
-        messages: [{
-          role: "user",
-          content: [{ text: "Hello" }]
-        }],
+        messages: [
+          {
+            role: "user",
+            content: [{ text: "Hello" }],
+          },
+        ],
         inferenceConfig: {
           maxTokens: 10,
-          temperature: 0.1
-        }
+          temperature: 0.1,
+        },
       };
 
       const command = new InvokeModelCommand({
         modelId: config.modelSettings.modelId,
         body: JSON.stringify(testPayload),
-        contentType: 'application/json',
-        accept: 'application/json'
+        contentType: "application/json",
+        accept: "application/json",
       });
 
       await this.bedrockClient.send(command);
-      console.log('✅ Bedrock access successful!');
+      console.log("✅ Bedrock access successful!");
       return true;
     } catch (error) {
       elizaLogger.error("Bedrock connectivity test failed:", error);
-      console.log('❌ Bedrock access failed:', error.message);
+      console.log("❌ Bedrock access failed:", error.message);
       return false;
     }
   }
 
-  private getCurrentMonthYear(): { month: string, year: string } {
+  private getCurrentMonthYear(): { month: string; year: string } {
     const now = new Date();
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return {
       month: months[now.getMonth()],
-      year: now.getFullYear().toString()
+      year: now.getFullYear().toString(),
     };
   }
 
@@ -617,7 +792,11 @@ class DisasterTweetBot {
     return `recent floods in Bangalore in May ${year}`;
   }
 
-  async generateTweet(searchResults: any[], month: string, year: string): Promise<string> {
+  async generateTweet(
+    searchResults: any[],
+    month: string,
+    year: string
+  ): Promise<string> {
     try {
       let searchResultsText = "Search Results:\n";
       for (const result of searchResults.slice(0, 10)) {
@@ -626,19 +805,19 @@ class DisasterTweetBot {
         searchResultsText += `URL: ${result.link}\n\n`;
       }
 
-      const bioText = Array.isArray(this.character.bio) 
-        ? this.character.bio.join(' ') 
-        : this.character.bio || '';
-      
-      const styleText = this.character.style?.chat 
-        ? (Array.isArray(this.character.style.chat) 
-          ? this.character.style.chat.join(' ') 
-          : this.character.style.chat)
-        : '';
-      
-      const adjectivesText = Array.isArray(this.character.adjectives) 
-        ? this.character.adjectives.join(', ') 
-        : '';
+      const bioText = Array.isArray(this.character.bio)
+        ? this.character.bio.join(" ")
+        : this.character.bio || "";
+
+      const styleText = this.character.style?.chat
+        ? Array.isArray(this.character.style.chat)
+          ? this.character.style.chat.join(" ")
+          : this.character.style.chat
+        : "";
+
+      const adjectivesText = Array.isArray(this.character.adjectives)
+        ? this.character.adjectives.join(", ")
+        : "";
 
       console.log(`🤖 Character loaded: ${this.character.name}`);
       console.log(`📝 Bio: ${bioText.substring(0, 100)}...`);
@@ -673,28 +852,32 @@ Requirements:
 7. Be empathetic and informative while maintaining your character`;
 
       const payload = {
-        messages: [{
-          role: "user",
-          content: [{ text: tweetPrompt }]
-        }],
+        messages: [
+          {
+            role: "user",
+            content: [{ text: tweetPrompt }],
+          },
+        ],
         inferenceConfig: {
           maxTokens: 400,
-          temperature: 0.5
-        }
+          temperature: 0.5,
+        },
       };
 
       const command = new InvokeModelCommand({
         modelId: config.modelSettings.modelId,
         body: JSON.stringify(payload),
-        contentType: 'application/json',
-        accept: 'application/json'
+        contentType: "application/json",
+        accept: "application/json",
       });
 
       const response = await this.bedrockClient.send(command);
       const responseBody = new TextDecoder().decode(response.body);
       const parsedResponse = JSON.parse(responseBody);
 
-      return parsedResponse.output?.message?.content?.[0]?.text?.trim() || "NIL";
+      return (
+        parsedResponse.output?.message?.content?.[0]?.text?.trim() || "NIL"
+      );
     } catch (error) {
       elizaLogger.error("Error generating tweet:", error);
       return "NIL";
@@ -713,23 +896,23 @@ Requirements:
     try {
       const { month, year } = this.getCurrentMonthYear();
       const searchQuery = this.createDisasterSearchQuery();
-      
+
       console.log(`\n🔍 Searching for disasters: ${searchQuery}`);
-      
+
       const searchResults = await this.googleSearch.search(searchQuery);
-      
+
       if (searchResults.length === 0) {
         console.log("NIL");
         return;
       }
-      
+
       const tweet = await this.generateTweet(searchResults, month, year);
-      
+
       if (tweet === "NIL" || !this.isNewDisaster(tweet)) {
         console.log("NIL");
         return;
       }
-      
+
       console.log("\n" + "=".repeat(50));
       console.log("📢 NEW DISASTER TWEET:");
       console.log("=".repeat(50));
@@ -737,72 +920,90 @@ Requirements:
       console.log("=".repeat(50) + "\n");
 
       // Extract the description part for assessment
-      const descriptionMatch = tweet.match(/Description:\s*([\s\S]+?)(?=Read More:|$)/i);
+      const descriptionMatch = tweet.match(
+        /Description:\s*([\s\S]+?)(?=Read More:|$)/i
+      );
       const description = descriptionMatch ? descriptionMatch[1].trim() : tweet;
 
       // Perform disaster assessment
-      const assessment = await this.disasterAssessment.assessDisaster(description);
-      
+      const assessment = await this.disasterAssessment.assessDisaster(
+        description
+      );
+
       // Create a more concise tweet for posting
       // Extract title and description from the original tweet
       const titleMatch = tweet.match(/Title:\s*(.+?)(?=\n|$)/i);
-      const descMatch = tweet.match(/Description:\s*([\s\S]+?)(?=Read More:|$)/i);
+      const descMatch = tweet.match(
+        /Description:\s*([\s\S]+?)(?=Read More:|$)/i
+      );
       const urlMatch = tweet.match(/Read More:\s*\[(.*?)\]/i);
-      
+
       // Create a concise title (max 5 words)
       const fullTitle = titleMatch ? titleMatch[1].trim() : "Disaster Alert";
-      const conciseTitle = fullTitle.split(' ').slice(0, 5).join(' ');
-      
+      const conciseTitle = fullTitle.split(" ").slice(0, 5).join(" ");
+
       // Get the URL if available
       const url = urlMatch ? urlMatch[1].trim() : "";
-      
+
       // Create a concise description with remaining character count
       const fullDesc = descMatch ? descMatch[1].trim() : "";
-      
+
       // Calculate available characters for description
       // Format: Title + newlines + "Relief Fund: $" + amount + newline + url
-      const fixedChars = conciseTitle.length + 4 + 13 + assessment.relief_fund.toString().length + 1 + url.length;
+      const fixedChars =
+        conciseTitle.length +
+        4 +
+        13 +
+        assessment.relief_fund.toString().length +
+        1 +
+        url.length;
       const availableForDesc = 250 - fixedChars;
-      
+
       // Truncate description to fit within character limit
       let conciseDesc = "";
       if (availableForDesc > 0) {
         // First try with words
-        let words = fullDesc.split(' ');
+        let words = fullDesc.split(" ");
         let currentDesc = "";
         for (let word of words) {
-          if ((currentDesc + word).length <= availableForDesc - 1) { // -1 for space
+          if ((currentDesc + word).length <= availableForDesc - 1) {
+            // -1 for space
             currentDesc += (currentDesc ? " " : "") + word;
           } else {
             break;
           }
         }
         conciseDesc = currentDesc;
-        
+
         // If still too long, truncate characters
         if (conciseDesc.length > availableForDesc) {
           conciseDesc = conciseDesc.substring(0, availableForDesc - 3) + "...";
         }
       }
-      
+
       // Format the final tweet
       const finalTweet = `${conciseTitle}\n\n${conciseDesc}\n\nRelief Fund: $${assessment.relief_fund}\n${url}`;
-      
+
       // Double-check length and truncate if needed
-      const finalTweetToUse = finalTweet.length > 250 
-        ? finalTweet.substring(0, 247) + "..." 
-        : finalTweet;
-        
+      const finalTweetToUse =
+        finalTweet.length > 250
+          ? finalTweet.substring(0, 247) + "..."
+          : finalTweet;
+
       if (finalTweet.length > 250) {
-        console.log(`⚠️ Tweet exceeds 250 characters (${finalTweet.length}). Truncating...`);
-        console.log(`✂️ Truncated from ${finalTweet.length} to ${finalTweetToUse.length} characters`);
+        console.log(
+          `⚠️ Tweet exceeds 250 characters (${finalTweet.length}). Truncating...`
+        );
+        console.log(
+          `✂️ Truncated from ${finalTweet.length} to ${finalTweetToUse.length} characters`
+        );
       }
-      
+
       // Combine results
       const result = {
         tweet: tweet,
         assessment: assessment,
-        conciseTweet: finalTweetToUse
+        conciseTweet: finalTweetToUse,
       };
 
       console.log("\n" + "⭐".repeat(20));
@@ -819,34 +1020,82 @@ Requirements:
       console.log(`Character count: ${finalTweetToUse.length}/250`);
       console.log("-".repeat(50));
       console.log("⭐".repeat(20) + "\n");
-      
+
       // Post complete tweet to Twitter after all processing is done
       console.log("🐦 Posting final tweet with assessment to Twitter...");
-      console.log("📤 Tweet payload length:", finalTweetToUse.length, "characters");
+      console.log(
+        "📤 Tweet payload length:",
+        finalTweetToUse.length,
+        "characters"
+      );
       try {
         const twitterResponse = await postTweet(finalTweetToUse);
         console.log("✅ Complete tweet posted to Twitter");
         console.log("📊 Twitter API Response:");
         console.log(JSON.stringify(twitterResponse, null, 2));
-        
+
         if (twitterResponse && twitterResponse.success) {
-          console.log("🎉 SUCCESS! Tweet posted with ID:", twitterResponse.tweet?.data?.id);
-          console.log("🔗 View the tweet at: https://twitter.com/user/status/" + twitterResponse.tweet?.data?.id);
-          
+          console.log(
+            "🎉 SUCCESS! Tweet posted with ID:",
+            twitterResponse.tweet?.data?.id
+          );
+          console.log(
+            "🔗 View the tweet at: https://twitter.com/user/status/" +
+              twitterResponse.tweet?.data?.id
+          );
+
           // Extract location from assessment
-          const location = await this.disasterAssessment.extractLocationFromNews(description);
-          
-          // Store disaster event in database
-          await insertDisasterEvent({
-            location: location,
-            title: fullTitle,
-            description: fullDesc,
-            amount: assessment.relief_fund,
-            source: url,
-            tweetId: twitterResponse.tweet?.data?.id
-          });
-          
-          console.log("💾 Disaster event data stored in database");
+          const location =
+            await this.disasterAssessment.extractLocationFromNews(description);
+
+          // Create disaster relief fund via API
+          try {
+            const randomNum = Math.floor(Math.random() * 10000); // Generate random number between 0-9999
+            const reliefFundData = {
+              title: fullTitle,
+              metadata: `Emergency: ${fullTitle} #${randomNum}`,
+              amount: assessment.relief_fund,
+            };
+
+            const reliefFundResponse = await createDisasterReliefFund(
+              reliefFundData
+            );
+            console.log("💰 Disaster relief fund created:", reliefFundResponse);
+
+            // Store disaster event in database with the disaster hash
+            await insertDisasterEvent({
+              location: location,
+              title: fullTitle,
+              description: fullDesc,
+              amount: assessment.relief_fund,
+              source: url,
+              tweetId: twitterResponse.tweet?.data?.id,
+              disasterHash: reliefFundResponse?.disasterHash,
+            });
+
+            console.log(
+              "💾 Disaster event data stored in database with disaster hash"
+            );
+          } catch (reliefError) {
+            console.error(
+              "❌ Failed to create disaster relief fund:",
+              reliefError.message
+            );
+
+            // Still store disaster event in database but without disaster hash
+            await insertDisasterEvent({
+              location: location,
+              title: fullTitle,
+              description: fullDesc,
+              amount: assessment.relief_fund,
+              source: url,
+              tweetId: twitterResponse.tweet?.data?.id,
+            });
+
+            console.log(
+              "💾 Disaster event data stored in database (without disaster hash)"
+            );
+          }
         } else {
           console.log("⚠️ Twitter API returned success:false");
         }
@@ -854,7 +1103,6 @@ Requirements:
         console.error("❌ Failed to post tweet:", error.message);
         console.error("📋 Error details:", error);
       }
-
     } catch (error) {
       elizaLogger.error("Error processing disaster search:", error);
       console.log("NIL");
@@ -863,22 +1111,47 @@ Requirements:
 
   startAutomatedProcess(): void {
     console.log("🤖 Starting automated disaster assessment system...");
-    console.log("⏰ Running every 60 seconds");
+    console.log("⏰ Will run with 60-second intervals between processes");
     console.log("🛑 Press Ctrl+C to stop\n");
-    
-    this.processDisasterSearch();
-    
-    this.intervalId = setInterval(() => {
-      console.log("\n⏱️ 60-second interval reached - searching for new disasters...");
-      this.processDisasterSearch();
-    }, 60000);
+
+    // Initial run
+    this.runProcessWithDelay();
   }
 
   stopAutomatedProcess(): void {
     if (this.intervalId) {
-      clearInterval(this.intervalId);
+      clearTimeout(this.intervalId);
       this.intervalId = null;
       console.log("🛑 Automated process stopped");
+    }
+  }
+
+  private async runProcessWithDelay(): Promise<void> {
+    try {
+      // Process current disaster
+      await this.processDisasterSearch();
+
+      // Schedule next run after 60 seconds
+      console.log("\n⏱️ Scheduling next search in 60 seconds...");
+      this.intervalId = setTimeout(() => {
+        console.log(
+          "\n⏱️ 60-second interval completed - searching for new disasters..."
+        );
+        this.runProcessWithDelay();
+      }, 60000);
+    } catch (error) {
+      console.error("❌ Error in automated process:", error);
+
+      // Even if there's an error, schedule the next run
+      console.log(
+        "\n⏱️ Error occurred, but scheduling next search in 60 seconds..."
+      );
+      this.intervalId = setTimeout(() => {
+        console.log(
+          "\n⏱️ 60-second interval completed - searching for new disasters..."
+        );
+        this.runProcessWithDelay();
+      }, 60000);
     }
   }
 }
@@ -899,36 +1172,44 @@ async function startDisasterAssessmentSystem() {
     selectedCharacter.username ??= selectedCharacter.name;
 
     console.log(`\n🚀 Initializing Disaster Assessment System...`);
-    
-    if (selectedCharacter.settings && (selectedCharacter.settings as any).modelId) {
-      config.modelSettings.modelId = (selectedCharacter.settings as any).modelId;
+
+    if (
+      selectedCharacter.settings &&
+      (selectedCharacter.settings as any).modelId
+    ) {
+      config.modelSettings.modelId = (
+        selectedCharacter.settings as any
+      ).modelId;
     }
-    
-    console.log(`Using AWS Bedrock model: ${config.modelSettings.modelId} in region: ${config.awsCredentials.region}`);
+
+    console.log(
+      `Using AWS Bedrock model: ${config.modelSettings.modelId} in region: ${config.awsCredentials.region}`
+    );
 
     const disasterBot = new DisasterTweetBot(selectedCharacter);
 
     console.log("Testing connection to AWS Bedrock...");
     const isConnected = await disasterBot.verifyBedrockConnectivity();
     if (!isConnected) {
-      throw new Error("Failed to connect to AWS Bedrock. Please check your AWS credentials and network connection.");
+      throw new Error(
+        "Failed to connect to AWS Bedrock. Please check your AWS credentials and network connection."
+      );
     }
     console.log("✅ AWS Bedrock connection successful!");
 
     disasterBot.startAutomatedProcess();
 
-    process.on('SIGINT', () => {
-      console.log('\n🛑 Shutting down gracefully...');
+    process.on("SIGINT", () => {
+      console.log("\n🛑 Shutting down gracefully...");
       disasterBot.stopAutomatedProcess();
       process.exit(0);
     });
 
-    process.on('SIGTERM', () => {
-      console.log('\n🛑 Shutting down gracefully...');
+    process.on("SIGTERM", () => {
+      console.log("\n🛑 Shutting down gracefully...");
       disasterBot.stopAutomatedProcess();
       process.exit(0);
     });
-
   } catch (error) {
     elizaLogger.error("Error starting system:", error);
     console.error("Failed to start system:", (error as Error).message);
@@ -939,16 +1220,30 @@ async function startDisasterAssessmentSystem() {
 // Start the application
 startDisasterAssessmentSystem().catch((error) => {
   elizaLogger.error("Unhandled error:", error);
-  
-  if (error.message.includes('getaddrinfo') || error.message.includes('ENOTFOUND')) {
-    console.error("\n❌ Network connectivity issue: Could not connect to AWS Bedrock.");
-    console.error("   Please check your internet connection and AWS region configuration.");
-  } else if (error.message.includes('credentials') || error.message.includes('AccessDenied')) {
-    console.error("\n❌ AWS authentication error: Invalid or missing credentials.");
-    console.error("   Please check your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.");
+
+  if (
+    error.message.includes("getaddrinfo") ||
+    error.message.includes("ENOTFOUND")
+  ) {
+    console.error(
+      "\n❌ Network connectivity issue: Could not connect to AWS Bedrock."
+    );
+    console.error(
+      "   Please check your internet connection and AWS region configuration."
+    );
+  } else if (
+    error.message.includes("credentials") ||
+    error.message.includes("AccessDenied")
+  ) {
+    console.error(
+      "\n❌ AWS authentication error: Invalid or missing credentials."
+    );
+    console.error(
+      "   Please check your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."
+    );
   } else {
     console.error("\n❌ Application error:", error.message);
   }
-  
+
   process.exit(1);
 });

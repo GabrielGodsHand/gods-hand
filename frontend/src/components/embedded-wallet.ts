@@ -248,13 +248,19 @@ export class EmbeddedWallet {
     deploymentSalt: Fr,
     constructorArgs: any[]
   ) {
+    console.log("registering contract", constructorArgs);
+    console.log("deployer", deployer);
+    console.log("deploymentSalt", deploymentSalt);
+    console.log("artifact", artifact);
+
     const instance = await getContractInstanceFromDeployParams(artifact, {
       constructorArtifact: getDefaultInitializer(artifact),
       constructorArgs: constructorArgs,
       deployer: deployer,
       salt: deploymentSalt,
     });
-
+    console.log("registering contract", instance.address);
+    console.log(instance.address);
     await this.pxe.registerContract({
       instance,
       artifact,

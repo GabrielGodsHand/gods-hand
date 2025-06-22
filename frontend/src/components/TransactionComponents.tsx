@@ -10,7 +10,10 @@ const textToField = (text: string): Fr => {
   return new Fr(BigInt("0x" + truncatedHash.toString("hex")));
 };
 
-const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS!;
+const contractAddress =
+  import.meta.env.VITE_IS_SANDBOX === "true"
+    ? import.meta.env.VITE_SANDBOX_CONTRACT_ADDRESS
+    : import.meta.env.VITE_CONTRACT_ADDRESS;
 
 export const ConnectTestAccount: React.FC = () => {
   const { connectTestAccount } = useWallet();

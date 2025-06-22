@@ -80,7 +80,10 @@ export default function DonationModal({
   const DUMMY_CONTRACT_ADDRESS = "0x1234567890123456789012345678901234567890";
   const nodeUrl =
     process.env.REACT_APP_AZTEC_NODE_URL || "http://localhost:8080";
-  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+  const contractAddress =
+    import.meta.env.VITE_IS_SANDBOX === "true"
+      ? import.meta.env.VITE_SANDBOX_CONTRACT_ADDRESS
+      : import.meta.env.VITE_CONTRACT_ADDRESS;
 
   const initializeEmbeddedWallet = async () => {
     try {
@@ -128,17 +131,17 @@ export default function DonationModal({
     }
   };
 
-  const handleFaucetUSDC = async () => {
+  const handleFaucetETH = async () => {
     if (!selectedTestAccount) return;
 
     setIsFauceting(true);
-    setConnectionStatus("Requesting USDC from faucet...");
+    setConnectionStatus("Requesting ETH from faucet...");
 
     try {
       // Simulate faucet request - replace with actual faucet logic if you have one
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setConnectionStatus("Successfully received 1000 USDC!");
+      setConnectionStatus("Successfully received 1000 ETH!");
 
       setTimeout(() => {
         setConnectionStatus("");
@@ -157,6 +160,11 @@ export default function DonationModal({
     setIsConnecting(true);
     setConnectionStatus("Preparing transaction...");
 
+    console.log({
+      connectedWallet,
+      embeddedWallet,
+      contractAddress,
+    });
     try {
       if (connectedWallet === "metamask") {
         const publicClient = createPublicClient({
@@ -196,10 +204,20 @@ export default function DonationModal({
       ) {
         setConnectionStatus("Creating Aztec donation transaction...");
 
-        // Convert USDC amount to appropriate units
-        const amount = Math.floor(parseFloat(donationAmount) * 1000000); // 6 decimals for USDC
+        // Convert ETH amount to appropriate units
+        const amount = Math.floor(parseFloat(donationAmount) * 1000000); // 6 decimals for ETH
 
         setConnectionStatus("Getting contract instance...");
+
+        const apiResponse = await fetch(
+          "http://localhost:3000/api/get-contract-instance",
+          {
+            method: "POST",
+            body: JSON.stringify({ contractAddress }),
+          }
+        );
+
+        const data = await apiResponse.json();
 
         // Get the connected account from embedded wallet
         const connectedWalletAccount = embeddedWallet.getConnectedAccount();
@@ -215,15 +233,15 @@ export default function DonationModal({
 
         setConnectionStatus("Submitting donation to Aztec network...");
 
+        console.log({
+          disasterHash,
+          amount,
+        });
+
         // Create donation transaction - you'll need to replace this with your actual donate method
         // This assumes your contract has a donate method that takes a disaster hash and amount
         const disasterHashFr = Fr.fromHexString(disasterHash);
-        const interaction = contract.methods.donate(
-          disasterHashFr,
-          amount,
-          Fr.fromString("0"),
-          Fr.fromString("0")
-        ); // Adjust parameters based on your contract
+        const interaction = contract.methods.donate(disasterHashFr, amount); // Adjust parameters based on your contract
 
         await embeddedWallet.sendTransaction(interaction);
 
@@ -534,18 +552,18 @@ export default function DonationModal({
                     {connectedWallet === "aztec" && (
                       <div className="mb-4 text-center">
                         <button
-                          onClick={handleFaucetUSDC}
+                          onClick={handleFaucetETH}
                           disabled={isFauceting}
                           className="text-amber-800 hover:text-amber-900 font-['Cinzel'] text-sm underline disabled:text-gray-500"
                         >
-                          {isFauceting ? "Processing..." : "🚰 Faucet USDC"}
+                          {isFauceting ? "Processing..." : "🚰 Faucet ETH"}
                         </button>
                       </div>
                     )}
 
                     <div className="mb-6">
                       <label className="block text-gray-900 font-['Cinzel'] font-bold mb-3 text-lg">
-                        Amount (USDC)
+                        Amount (ETH)
                       </label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 font-['Cinzel'] text-xl font-bold">

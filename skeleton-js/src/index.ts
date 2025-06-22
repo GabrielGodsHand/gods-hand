@@ -104,16 +104,9 @@ export class AztecApp {
 
   async donate(
     disasterHash: string,
-    amount: number,
-    chain: string,
-    tokenAddress: string
+    amount: number
   ): Promise<TransactionReceipt> {
-    return await this.operations.donate(
-      disasterHash,
-      amount,
-      chain,
-      tokenAddress
-    );
+    return await this.operations.donate(disasterHash, amount);
   }
 
   async vote(

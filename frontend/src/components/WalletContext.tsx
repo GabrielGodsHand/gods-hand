@@ -31,10 +31,22 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
-  const deployerAddress = import.meta.env.VITE_DEPLOYER_ADDRESS;
-  const deploymentSalt = import.meta.env.VITE_DEPLOYMENT_SALT;
-  const nodeUrl = import.meta.env.VITE_AZTEC_NODE_URL;
+  const contractAddress =
+    import.meta.env.VITE_IS_SANDBOX === "true"
+      ? import.meta.env.VITE_SANDBOX_CONTRACT_ADDRESS
+      : import.meta.env.VITE_CONTRACT_ADDRESS;
+  const deployerAddress =
+    import.meta.env.VITE_IS_SANDBOX === "true"
+      ? import.meta.env.VITE_SANDBOX_DEPLOYER_ADDRESS
+      : import.meta.env.VITE_DEPLOYER_ADDRESS;
+  const deploymentSalt =
+    import.meta.env.VITE_IS_SANDBOX === "true"
+      ? import.meta.env.VITE_SANDBOX_DEPLOYMENT_SALT
+      : import.meta.env.VITE_DEPLOYMENT_SALT;
+  const nodeUrl =
+    import.meta.env.VITE_IS_SANDBOX === "true"
+      ? import.meta.env.VITE_SANDBOX_AZTEC_NODE_URL
+      : import.meta.env.VITE_AZTEC_NODE_URL;
 
   useEffect(() => {
     initializeWallet();
@@ -51,13 +63,22 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       await newWallet.initialize();
 
       setStatus("Registering contracts...");
+      const isSandbox =
+        import.meta.env.VITE_IS_SANDBOX === "true" ? true : false;
       await newWallet.registerContract(
         GodsHandContractArtifact,
         AztecAddress.fromString(deployerAddress),
         Fr.fromString(deploymentSalt),
         [
           AztecAddress.fromString(
-            "0x138dd3b661a4e603aae83e52dc80dd45d453d4a93647b4124bbcb14bde64b704"
+            isSandbox
+              ? "0x2012172dc101c48390bb7fba83cff75547532b26664f5322c61c075c1383ed77"
+              : "0x2cce50c358e5b0e04c06a665216f6831edf6bdfa27d07413c291a7ba840b6299"
+          ),
+          AztecAddress.fromString(
+            isSandbox
+              ? "0x138dd3b661a4e603aae83e52dc80dd45d453d4a93647b4124bbcb14bde64b704"
+              : "0x0d04afd01555b167610733c92b7603b6682fbaf8a848db50bea9a8a19142410b"
           ),
           2,
         ]
