@@ -92,7 +92,7 @@ export default function PetitionFormClient({
           <div className="absolute inset-0 bg-gradient-to-br from-[#d4af8c] via-[#c9a876] to-[#b8956a]"></div>
           <div className="absolute inset-0 opacity-60">
             <img
-              src="/assets/clouds.PNG"
+              src="/assets/clouds.png"
               alt="Divine Clouds"
               className="w-full h-full object-cover"
             />
@@ -137,7 +137,7 @@ export default function PetitionFormClient({
         <div className="absolute inset-0 bg-gradient-to-br from-[#d4af8c] via-[#c9a876] to-[#b8956a]"></div>
         <div className="absolute inset-0 opacity-60">
           <img
-            src="/assets/clouds.PNG"
+            src="/assets/clouds.png"
             alt="Divine Clouds"
             className="w-full h-full object-cover"
           />
@@ -148,7 +148,7 @@ export default function PetitionFormClient({
         {/* Header */}
         <div className="mb-12">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/events")}
             className="text-gray-800 hover:text-gray-900 mb-6 flex items-center bg-white/20 backdrop-blur-md rounded-full px-4 py-2 transition-all duration-300 font-['Cinzel']"
           >
             <svg
@@ -167,51 +167,14 @@ export default function PetitionFormClient({
             Back to Events
           </button>
 
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6 font-['Cinzel'] text-center">
-              Submit Fund Petition
+          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4 font-['Cinzel'] tracking-wide">
+              Request Funds
             </h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <span className="text-gray-600 font-semibold font-['Cinzel']">
-                  Fund Vault:
-                </span>
-                <span className="text-gray-900 ml-2 font-bold font-['Cinzel']">
-                  {fundVault.vault_name}
-                </span>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <span className="text-gray-600 font-semibold font-['Cinzel']">
-                  Available Funds:
-                </span>
-                <span className="text-gray-900 ml-2 font-bold font-['Cinzel']">
-                  ${fundVault.remaining_amount?.toLocaleString()}
-                </span>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <span className="text-gray-600 font-semibold font-['Cinzel']">
-                  Disaster Type:
-                </span>
-                <span className="text-gray-900 ml-2 font-bold font-['Cinzel']">
-                  {fundVault.disaster_type}
-                </span>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <span className="text-gray-600 font-semibold font-['Cinzel']">
-                  Location:
-                </span>
-                <span className="text-gray-900 ml-2 font-bold font-['Cinzel']">
-                  {fundVault.location}
-                </span>
-              </div>
-            </div>
-            {fundVault.description && (
-              <div className="mt-6 bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-gray-700 font-['Cinzel'] leading-relaxed">
-                  {fundVault.description}
-                </p>
-              </div>
-            )}
+            <p className="text-gray-700 text-lg font-['Cinzel']">
+              Submit a formal request for relief funds for{" "}
+              {organization?.organization_name}
+            </p>
           </div>
         </div>
 
@@ -352,7 +315,7 @@ export default function PetitionFormClient({
             <div className="flex justify-between items-center pt-8">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/events")}
                 className="px-8 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all duration-300 font-semibold font-['Cinzel'] shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
               >
                 Cancel

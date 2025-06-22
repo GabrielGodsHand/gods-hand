@@ -588,35 +588,6 @@ export default function EventsClient({
             </div>
           </div>
         )}
-
-        {/* Quick Actions for Logged-in Users */}
-        {user && organization && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 font-['Cinzel'] text-center drop-shadow-lg bg-gradient-to-b from-gray-800 to-gray-900 bg-clip-text text-transparent">
-              Divine Administration
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Link
-                to="/kyb"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Sacred Registry
-              </Link>
-              <Link
-                to="/petitions"
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Divine Petitions
-              </Link>
-              <Link
-                to="/documents"
-                className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Sacred Scrolls
-              </Link>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );
