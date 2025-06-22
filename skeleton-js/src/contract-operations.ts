@@ -1,8 +1,8 @@
 import { Fr, AztecAddress } from "@aztec/aztec.js";
 import { keccak256 } from "@aztec/foundation/crypto";
-import { GodsHandContract } from "../artifacts/GodsHand.ts";
-import { WalletManager } from "./wallet-manager.ts";
-import { DisasterData, VoteType, TransactionReceipt } from "./types.ts";
+import { GodsHandContract } from "../artifacts/GodsHand.js";
+import { WalletManager } from "./wallet-manager.js";
+import { DisasterData, VoteType, TransactionReceipt } from "./types.js";
 
 function textToField(text: string): Fr {
   const hash = keccak256(Buffer.from(text, "utf8"));

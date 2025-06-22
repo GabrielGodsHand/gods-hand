@@ -175,6 +175,22 @@ async function main(): Promise<void> {
   app.switchAccount("test3");
   const voteReceipt = await app.vote(disasterHash, accounts[0].address, 1);
   console.log("Vote cast:", voteReceipt);
+
+  console.log("Unlocking funds...");
+  console.log("Switching to test2...");
+  app.switchAccount("test2");
+  const unlockReceipt = await app.unlockFunds(
+    disasterHash,
+    accounts[0].address,
+    10000
+  );
+  console.log("Funds unlocked:", unlockReceipt);
+
+  console.log("Claiming funds...");
+  console.log("Switching to test1...");
+  app.switchAccount("test1");
+  const claimReceipt = await app.claim(disasterHash);
+  console.log("Funds claimed:", claimReceipt);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
