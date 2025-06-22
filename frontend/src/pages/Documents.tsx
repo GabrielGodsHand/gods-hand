@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createClient } from "@/lib/supabase/client";
 import DocumentsClient from "@/components/DocumentsClient";
+import { FullScreenDivineLoader } from "@/components/DivineLoader";
 import { User } from "@supabase/supabase-js";
 import { Organization, KYBDocument } from "@/lib/types/database";
 
@@ -60,7 +61,7 @@ export default function DocumentsPage() {
   }, [navigate, supabase]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <FullScreenDivineLoader message="Loading your documents..." />;
   }
 
   return (

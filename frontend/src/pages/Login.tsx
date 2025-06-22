@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { FullScreenDivineLoader } from "@/components/DivineLoader";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -496,7 +497,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<FullScreenDivineLoader message="Preparing divine authentication..." />}>
       <LoginForm />
     </Suspense>
   );

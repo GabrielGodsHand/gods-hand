@@ -113,7 +113,7 @@ export default function Home() {
                 disabled={loading}
               >
                 <span className="btn-text">
-                  {loading ? "Loading..." : "View Events"}
+                  {loading ? "Awakening Divine Power..." : "View Events"}
                 </span>
                 <div className="btn-glow"></div>
               </button>

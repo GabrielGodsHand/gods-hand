@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createClient } from "@/lib/supabase/client";
 import PetitionsClient from "@/components/PetitionsClient";
+import { FullScreenDivineLoader } from "@/components/DivineLoader";
 import { User } from "@supabase/supabase-js";
-import { Organization } from "@/lib/types/database";
+import { Organization, Event } from "@/lib/types/database";
 
 interface PetitionWithVault {
   id: string;
@@ -91,7 +92,7 @@ export default function PetitionsPage() {
   }, [navigate, supabase]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <FullScreenDivineLoader message="Loading your petitions..." />;
   }
 
   return (

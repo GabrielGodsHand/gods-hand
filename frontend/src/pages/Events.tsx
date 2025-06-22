@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import EventsClient from "@/components/EventsClient";
+import { FullScreenDivineLoader } from "@/components/DivineLoader";
 import { User } from "@supabase/supabase-js";
 import { Organization, Event } from "@/lib/types/database";
 
@@ -52,7 +53,7 @@ export default function EventsPage() {
   }, [supabase]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <FullScreenDivineLoader message="Loading divine events..." />;
   }
 
   return (

@@ -106,4 +106,31 @@ export default function DivineLoader({
       </div>
     </div>
   );
+}
+
+// Full-screen loading component for page transitions
+export function FullScreenDivineLoader({ 
+  message = "Loading sacred content...",
+  size = 'large' 
+}: DivineLoaderProps) {
+  return (
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+      {/* Divine Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#d4af8c] via-[#c9a876] to-[#b8956a]"></div>
+        <div className="absolute inset-0 opacity-60">
+          <img
+            src="/assets/clouds.png"
+            alt="Divine Clouds"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+      
+      {/* Loader Content */}
+      <div className="relative z-10">
+        <DivineLoader message={message} size={size} />
+      </div>
+    </div>
+  );
 } 
