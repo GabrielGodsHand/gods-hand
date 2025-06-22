@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { zkPassportService } from "@/lib/zkpassport";
-import { createClient } from "@/lib/supabase/client";
+import { zkPassportService } from "../lib/zkpassport";
+import { createClient } from "../lib/supabase/client";
 import qrcode from "qrcode";
 
 interface VotingModalProps {
