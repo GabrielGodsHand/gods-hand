@@ -32,8 +32,8 @@ import {
   type Wallet,
   type U128Like,
   type WrappedFieldLike,
-} from '@aztec/aztec.js';
-import GodsHandContractArtifactJson from './target.json' with { type: 'json' };
+} from "@aztec/aztec.js";
+import GodsHandContractArtifactJson from "./target.json";
 export const GodsHandContractArtifact = loadContractArtifact(
   GodsHandContractArtifactJson as NoirCompiledContract
 );
@@ -98,9 +98,9 @@ export class GodsHandContract extends ContractBase {
   /**
    * Creates a tx to deploy a new instance of this contract using the specified constructor method.
    */
-  public static deployWithOpts<M extends keyof GodsHandContract['methods']>(
+  public static deployWithOpts<M extends keyof GodsHandContract["methods"]>(
     opts: { publicKeys?: PublicKeys; method?: M; wallet: Wallet },
-    ...args: Parameters<GodsHandContract['methods'][M]>
+    ...args: Parameters<GodsHandContract["methods"][M]>
   ) {
     return new DeployMethod<GodsHandContract>(
       opts.publicKeys ?? PublicKeys.default(),
@@ -108,7 +108,7 @@ export class GodsHandContract extends ContractBase {
       GodsHandContractArtifact,
       GodsHandContract.at,
       Array.from(arguments).slice(1),
-      opts.method ?? 'constructor'
+      opts.method ?? "constructor"
     );
   }
 
@@ -129,14 +129,14 @@ export class GodsHandContract extends ContractBase {
   }
 
   public static get storage(): ContractStorageLayout<
-    | 'agent'
-    | 'vote_threshold'
-    | 'disaster_amounts'
-    | 'disaster_active'
-    | 'user_donations'
-    | 'total_donations'
-    | 'vote_count'
-    | 'unlocked_funds'
+    | "agent"
+    | "vote_threshold"
+    | "disaster_amounts"
+    | "disaster_active"
+    | "user_donations"
+    | "total_donations"
+    | "vote_count"
+    | "unlocked_funds"
   > {
     return {
       agent: {
@@ -164,50 +164,50 @@ export class GodsHandContract extends ContractBase {
         slot: new Fr(8n),
       },
     } as ContractStorageLayout<
-      | 'agent'
-      | 'vote_threshold'
-      | 'disaster_amounts'
-      | 'disaster_active'
-      | 'user_donations'
-      | 'total_donations'
-      | 'vote_count'
-      | 'unlocked_funds'
+      | "agent"
+      | "vote_threshold"
+      | "disaster_amounts"
+      | "disaster_active"
+      | "user_donations"
+      | "total_donations"
+      | "vote_count"
+      | "unlocked_funds"
     >;
   }
 
-  public static get notes(): ContractNotes<'ValueNote'> {
+  public static get notes(): ContractNotes<"ValueNote"> {
     return {
       ValueNote: {
         id: new NoteSelector(0),
       },
-    } as ContractNotes<'ValueNote'>;
+    } as ContractNotes<"ValueNote">;
   }
 
   /** Type-safe wrappers for the public methods exposed by the contract. */
-  declare public methods: {
+  public declare methods: {
     /** claim(disaster_hash: field) */
     claim: ((disaster_hash: FieldLike) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** constructor(agent: struct, vote_threshold: integer) */
     constructor: ((
       agent: AztecAddressLike,
       vote_threshold: bigint | number
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** create_disaster(disaster_hash: field, estimated_amount_required: integer) */
     create_disaster: ((
       disaster_hash: FieldLike,
       estimated_amount_required: bigint | number
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** deactivate_disaster(disaster_hash: field) */
     deactivate_disaster: ((
       disaster_hash: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** donate(disaster_hash: field, amount: integer, chain: field, token_address: field) */
     donate: ((
@@ -216,67 +216,67 @@ export class GodsHandContract extends ContractBase {
       chain: FieldLike,
       token_address: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_agent() */
     get_agent: (() => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_disaster_amount(disaster_hash: field) */
     get_disaster_amount: ((
       disaster_hash: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_disaster_info(disaster_hash: field) */
     get_disaster_info: ((
       disaster_hash: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_total_donations(disaster_hash: field) */
     get_total_donations: ((
       disaster_hash: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_unlocked_funds(disaster_hash: field, org_address: struct) */
     get_unlocked_funds: ((
       disaster_hash: FieldLike,
       org_address: AztecAddressLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_user_donation(disaster_hash: field, user: struct) */
     get_user_donation: ((
       disaster_hash: FieldLike,
       user: AztecAddressLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_vote_count(disaster_hash: field) */
     get_vote_count: ((
       disaster_hash: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** get_vote_threshold() */
     get_vote_threshold: (() => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** is_disaster_active(disaster_hash: field) */
     is_disaster_active: ((
       disaster_hash: FieldLike
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** public_dispatch(selector: field) */
     public_dispatch: ((selector: FieldLike) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** sync_private_state() */
     sync_private_state: (() => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** unlock_funds(disaster_hash: field, org_address: struct, amount: integer) */
     unlock_funds: ((
@@ -284,7 +284,7 @@ export class GodsHandContract extends ContractBase {
       org_address: AztecAddressLike,
       amount: bigint | number
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
 
     /** vote(disaster_hash: field, org_address: struct, vote_type: integer) */
     vote: ((
@@ -292,6 +292,6 @@ export class GodsHandContract extends ContractBase {
       org_address: AztecAddressLike,
       vote_type: bigint | number
     ) => ContractFunctionInteraction) &
-      Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, "selector">;
   };
 }

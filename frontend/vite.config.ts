@@ -1,16 +1,36 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { resolve } from "path";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
+import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      protocolImports: true,
+    }),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   define: {
     global: "globalThis",
   },
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, "./src"),
+  optimizeDeps: {
+    include: ["buffer"],
+    esbuildOptions: {
+      target: "esnext", // Use latest target
     },
+  },
+  build: {
+    target: "esnext", // Support import assertions
   },
   server: {
     headers: {
