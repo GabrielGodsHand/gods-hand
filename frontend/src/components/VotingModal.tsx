@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { zkPassportService } from "../lib/zkpassport";
 import { createClient } from "../lib/supabase/client";
 import qrcode from "qrcode";
+import { keccak256 } from "@aztec/foundation/crypto";
 
 interface VotingModalProps {
   isOpen: boolean;
@@ -154,6 +155,7 @@ export default function VotingModal({
         claim_id: claimId,
         vote_type: selectedVote,
         voter_ip: null,
+        nullifier_hash: keccak256(Buffer.from(uniqueIdentifier)),
       });
       if (error) {
         throw error;
@@ -339,7 +341,7 @@ export default function VotingModal({
                             <strong>Verified Identity Nullifier:</strong>
                             <br />
                             <code className="bg-white/50 px-2 py-1 rounded text-xs break-all">
-                              {uniqueIdentifier}
+                              {keccak256(Buffer.from(uniqueIdentifier))}
                             </code>
                           </p>
                         </div>
