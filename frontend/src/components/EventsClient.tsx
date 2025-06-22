@@ -1,7 +1,6 @@
 "use client";
 
-import { Organization, Event } from "@/lib/types/database";
-import { User } from "@supabase/supabase-js";
+import { Event } from "@/lib/types/database";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -10,8 +9,6 @@ import DivineLoader from "@/components/DivineLoader";
 import InteractiveGlobe from "@/components/InteractiveGlobe";
 
 interface EventsClientProps {
-  user: User | null;
-  organization: Organization | null;
   events: Event[];
 }
 
@@ -25,8 +22,6 @@ interface DisasterLocation {
 }
 
 export default function EventsClient({
-  user,
-  organization,
   events,
 }: EventsClientProps) {
   const navigate = useNavigate();
@@ -561,33 +556,25 @@ export default function EventsClient({
           )}
         </div>
 
-        {/* Information Section for Non-logged-in Users */}
-        {!user && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 font-['Cinzel'] drop-shadow-lg bg-gradient-to-b from-gray-800 to-gray-900 bg-clip-text text-transparent">
-              Answer the Divine Call to Serve
-            </h2>
-            <p className="text-gray-800 mb-8 font-['Cinzel'] text-xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-sm">
-              Join our sacred mission to distribute divine resources to
-              communities touched by earthly trials. Your compassion can become
-              their salvation.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/login"
-                className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#ffd700] to-[#ffed4e] text-gray-900 font-bold text-lg rounded-xl hover:from-[#ffed4e] hover:to-[#ffd700] transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Begin Sacred Journey
-              </Link>
-              <Link
-                to="/"
-                className="inline-flex items-center px-10 py-5 bg-gray-900 hover:bg-gray-800 text-white font-bold text-lg rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Discover Our Mission
-              </Link>
-            </div>
+        {/* Information Section */}
+        <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 font-['Cinzel'] drop-shadow-lg bg-gradient-to-b from-gray-800 to-gray-900 bg-clip-text text-transparent">
+            Answer the Divine Call to Serve
+          </h2>
+          <p className="text-gray-800 mb-8 font-['Cinzel'] text-xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-sm">
+            Join our sacred mission to distribute divine resources to
+            communities touched by earthly trials. Your compassion can become
+            their salvation.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/"
+              className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#ffd700] to-[#ffed4e] text-gray-900 font-bold text-lg rounded-xl hover:from-[#ffed4e] hover:to-[#ffd700] transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
+            >
+              Discover Our Mission
+            </Link>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );
