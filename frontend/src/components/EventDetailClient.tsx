@@ -42,12 +42,14 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
     isOpen: boolean;
     claimId: string;
     organizationName: string;
+    organizationAztecAddress: string;
     claimedAmount: number;
     reason: string;
   }>({
     isOpen: false,
     claimId: "",
     organizationName: "",
+    organizationAztecAddress: "",
     claimedAmount: 0,
     reason: "",
   });
@@ -124,6 +126,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
     setVotingModal({
       isOpen: true,
       claimId: claim.id,
+      organizationAztecAddress: claim.organization_aztec_address,
       organizationName: claim.organization_name || "Unknown Organization",
       claimedAmount: claim.claimed_amount,
       reason: claim.reason,
@@ -746,10 +749,13 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
       {votingModal.isOpen && (
         <VotingModal
           isOpen={votingModal.isOpen}
+          disasterHash={event?.disaster_hash || ""}
+          organizationAztecAddress={votingModal.organizationAztecAddress || ""}
           onClose={() =>
             setVotingModal({
               isOpen: false,
               claimId: "",
+              organizationAztecAddress: "",
               organizationName: "",
               claimedAmount: 0,
               reason: "",

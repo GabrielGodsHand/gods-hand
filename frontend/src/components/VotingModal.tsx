@@ -11,6 +11,8 @@ interface VotingModalProps {
   onClose: () => void;
   claimId: string;
   organizationName: string;
+  disasterHash: string;
+  organizationAztecAddress: string;
   claimedAmount: number;
   reason: string;
   onVoteComplete: (voteType: string) => void;
@@ -23,6 +25,8 @@ export default function VotingModal({
   isOpen,
   onClose,
   claimId,
+  disasterHash,
+  organizationAztecAddress,
   organizationName,
   claimedAmount,
   reason,
