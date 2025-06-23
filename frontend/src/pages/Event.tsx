@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
-import EventDetailClient from "@/components/EventDetailClient";
-import { FullScreenDivineLoader } from "@/components/DivineLoader";
+import EventDetailClient from "../components/EventDetailClient";
+import React from "react";
+import { FullScreenDivineLoader } from "../components/DivineLoader";
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();

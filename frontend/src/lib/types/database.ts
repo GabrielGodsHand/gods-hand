@@ -362,6 +362,7 @@ export interface Event {
   estimated_amount_required: number;
   source: string;
   tweet_id?: string;
+  disaster_hash?: string;
 }
 
 export interface Claim {
@@ -369,6 +370,7 @@ export interface Claim {
   event_id: string;
   org_id?: string;
   organization_name?: string;
+  organization_aztec_address?: string;
   claimed_amount: number;
   reason: string;
   claim_state: 'waiting_for_ai' | 'voting' | 'approved' | 'rejected' | 'claimed';

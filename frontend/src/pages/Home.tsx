@@ -1,40 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createClient } from "@/lib/supabase/client";
-import { User } from "@supabase/supabase-js";
-import DivineParallax from "@/components/DivineParallax";
-import Header from "@/components/Header";
+import DivineParallax from "../components/DivineParallax";
+import Header from "../components/Header";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
-
-  useEffect(() => {
-    // Check authentication status
-    const checkAuth = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      console.log("user", user);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth, user]);
 
   useEffect(() => {
     // Load divine parallax CSS only for this page
@@ -57,7 +29,6 @@ export default function Home() {
   }, []);
 
   const handleViewEvents = () => {
-    // Always redirect to events page regardless of authentication status
     navigate("/events");
   };
 
@@ -110,11 +81,8 @@ export default function Home() {
               <button
                 className="divine-btn primary"
                 onClick={handleViewEvents}
-                disabled={loading}
               >
-                <span className="btn-text">
-                  {loading ? "Awakening Divine Power..." : "View Events"}
-                </span>
+                <span className="btn-text">View Events</span>
                 <div className="btn-glow"></div>
               </button>
             </div>

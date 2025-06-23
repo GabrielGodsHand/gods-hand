@@ -10,12 +10,12 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["app/*"],
-      "@/components/*": ["app/components/*"],
-      "@/hooks/*": ["app/hooks/*"],
-      "@/utils/*": ["app/utils/*"],
-      "@/types/*": ["app/types/*"],
-      "@/artifacts/*": ["app/artifacts/*"]
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"],
+      "@/artifacts/*": ["src/artifacts/*"]
     }
   },
   "include": [

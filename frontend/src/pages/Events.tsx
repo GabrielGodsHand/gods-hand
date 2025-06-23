@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import EventsClient from "@/components/EventsClient";
-import { FullScreenDivineLoader } from "@/components/DivineLoader";
-import { Event } from "@/lib/types/database";
+import React, { useEffect, useState } from "react";
+import { createClient } from "../lib/supabase/client";
+import EventsClient from "../components/EventsClient";
+import { FullScreenDivineLoader } from "../components/DivineLoader";
+import { Event } from "../lib/types/database";
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import {
   Organization,
   Event,
   ClaimWithOrganization,
-} from "@/lib/types/database";
-import { createClient } from "@/lib/supabase/client";
-import Header from "@/components/Header";
-import DivineLoader from "@/components/DivineLoader";
-import DecryptedText from "@/components/DecryptedText";
-import DonationModal from "@/components/DonationModal";
+} from "../lib/types/database";
+import { createClient } from "../lib/supabase/client";
+import Header from "./Header";
+import DivineLoader from "./DivineLoader";
+import DecryptedText from "./DecryptedText";
+import DonationModal from "./DonationModal";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -126,7 +126,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
     setVotingModal({
       isOpen: true,
       claimId: claim.id,
-      organizationAztecAddress: claim.organization_aztec_address,
+      organizationAztecAddress: claim.organization_aztec_address || "",
       organizationName: claim.organization_name || "Unknown Organization",
       claimedAmount: claim.claimed_amount,
       reason: claim.reason,

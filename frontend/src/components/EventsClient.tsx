@@ -1,12 +1,13 @@
 "use client";
 
-import { Event } from "@/lib/types/database";
+import React from "react";
+import { Event } from "../lib/types/database";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import TiltedCard from "@/components/TiltedCard";
-import DivineLoader from "@/components/DivineLoader";
-import InteractiveGlobe from "@/components/InteractiveGlobe";
+import Header from "./Header";
+import TiltedCard from "./TiltedCard";
+import DivineLoader from "./DivineLoader";
+import InteractiveGlobe from "./InteractiveGlobe";
 
 interface EventsClientProps {
   events: Event[];

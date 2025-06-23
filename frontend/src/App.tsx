@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Event from "./pages/Event";
 import Testing from "./pages/Testing";
+import React from "react";
 
 function App() {
   return (
