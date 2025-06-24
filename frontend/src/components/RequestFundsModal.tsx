@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { createClient } from "../lib/supabase/client";
+import { claimsService } from "../lib/dynamodb/claims";
 import { useWallet } from "./WalletContext";
 
 interface RequestFundsModalProps {
@@ -45,8 +45,6 @@ export default function RequestFundsModal({
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const supabase = createClient();
-
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -82,22 +80,14 @@ export default function RequestFundsModal({
 
     try {
       // Insert claim into database with organization details
-      const { data: claimData, error } = await supabase
-        .from("claims")
-        .insert({
-          event_id: eventId,
-          organization_name: organizationName.trim(),
-          claimed_amount: 0,
-          organization_aztec_address: account?.getAddress() || "",
-          reason: reason.trim(),
-          claim_state: "voting",
-        })
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
+      const claimData = await claimsService.createClaim({
+        event_id: eventId,
+        organization_name: organizationName.trim(),
+        claimed_amount: 0,
+        organization_aztec_address: account?.getAddress()?.toString() || "",
+        reason: reason.trim(),
+        claim_state: "voting",
+      });
 
       setSubmitStatus(
         `Success! Your funding request  has been submitted. AI is analyzing youworks.`
@@ -120,12 +110,9 @@ export default function RequestFundsModal({
       const data = await apiResponse.json();
       console.log(data);
 
-      await supabase
-        .from("claims")
-        .update({
-          claimed_amount: data.amount,
-        })
-        .eq("id", claimData.id);
+      await claimsService.updateClaim(claimData.id, {
+        claimed_amount: data.amount,
+      });
 
       setApiResponse(data);
       setIsProcessing(false);

@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
 import {
-  Organization,
   Event,
   ClaimWithOrganization,
 } from "../lib/types/database";
-import { createClient } from "../lib/supabase/client";
+import { eventsService } from "../lib/dynamodb/events";
+import { claimsService } from "../lib/dynamodb/claims";
 import Header from "./Header";
 import DivineLoader from "./DivineLoader";
 import DecryptedText from "./DecryptedText";
@@ -24,7 +23,6 @@ interface EventDetailClientProps {
 
 export default function EventDetailClient({ eventId }: EventDetailClientProps) {
   const navigate = useNavigate();
-  const supabase = createClient();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [claims, setClaims] = useState<ClaimWithOrganization[]>([]);
@@ -81,31 +79,16 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
         setLoading(true);
 
         // Fetch event details
-        const { data: eventData, error: eventError } = await supabase
-          .from("events")
-          .select("*")
-          .eq("id", eventId)
-          .single();
-
-        if (eventError) {
-          console.error("Error fetching event:", eventError);
+        const eventData = await eventsService.getEventById(eventId);
+        if (!eventData) {
+          console.error("Event not found");
           return;
         }
-
         setEvent(eventData);
 
         // Fetch claims for this event
-        const { data: claimsData, error: claimsError } = await supabase
-          .from("claims")
-          .select("*")
-          .eq("event_id", eventId)
-          .order("created_at", { ascending: false });
-
-        if (claimsError) {
-          console.error("Error fetching claims:", claimsError);
-        } else {
-          setClaims(claimsData || []);
-        }
+        const claimsData = await claimsService.getClaimsByEventId(eventId);
+        setClaims(claimsData);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -114,7 +97,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
     }
 
     fetchData();
-  }, [eventId, supabase]);
+  }, [eventId]);
 
   const handleVote = async (claimId: string, voteType: string) => {
     setSelectedVote((prev) => ({ ...prev, [claimId]: voteType }));
