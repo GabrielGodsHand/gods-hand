@@ -1,7 +1,0 @@
-[package]
-name="zkpassport"
-type="bin"
-authors = ["gabrielantonyxaviour"]
-compiler_version = ">=1.0.0"
-
-[dependencies]

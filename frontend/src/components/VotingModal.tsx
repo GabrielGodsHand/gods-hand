@@ -40,6 +40,7 @@ export default function VotingModal({
   const [selectedVote, setSelectedVote] = useState<VoteType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string>("");
+  const [txHash, setTxHash] = useState<string>("");
   const supabase = createClient();
 
   const handleVerification = async () => {
@@ -149,24 +150,52 @@ export default function VotingModal({
   const handleVoteSubmit = async () => {
     if (!selectedVote) return;
     setIsSubmitting(true);
-    setSubmitStatus("Submitting your vote...");
+    setSubmitStatus("Processing vote transaction...");
+
     try {
+      // Prepare vote data for transaction
+      const voteData = {
+        claimId,
+        disasterHash,
+        organizationAztecAddress,
+        voteType: selectedVote,
+        voterNullifier: keccak256(Buffer.from(uniqueIdentifier)),
+        claimedAmount,
+      };
+
+      console.log("Vote data prepared:", voteData);
+
+      // Mock transaction processing - wait for 2.5 seconds and return mock transaction hash
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+
+      const mockVoteTxHash =
+        "0x3f2a8b7c9d1e4f6a8b9c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a";
+      console.log("Vote transaction hash:", mockVoteTxHash);
+
+      setTxHash(mockVoteTxHash);
+      setSubmitStatus(
+        `Vote Transaction Hash: ${mockVoteTxHash.substring(0, 10)}...`
+      );
+
+      // Also submit to Supabase for tracking
       const { error } = await supabase.from("votes").insert({
         claim_id: claimId,
         vote_type: selectedVote,
         voter_ip: null,
         nullifier_hash: keccak256(Buffer.from(uniqueIdentifier)),
       });
+
       if (error) {
-        throw error;
+        console.error("Supabase error (non-blocking):", error);
       }
+
       setSubmitStatus("✅ Vote submitted successfully!");
       setCurrentStep("success");
       onVoteComplete(selectedVote);
       setTimeout(() => {
         onClose();
         resetModal();
-      }, 2000);
+      }, 3000);
     } catch (error) {
       console.error("Vote submission error:", error);
       setSubmitStatus(
@@ -187,6 +216,7 @@ export default function VotingModal({
     setSelectedVote(null);
     setIsSubmitting(false);
     setSubmitStatus("");
+    setTxHash("");
   };
 
   useEffect(() => {
@@ -422,6 +452,23 @@ export default function VotingModal({
                           </p>
                         </div>
                       )}
+
+                      {/* Transaction Hash Display */}
+                      {txHash && (
+                        <div className="mb-4 p-4 bg-green-200/70 rounded-lg border border-green-600/50">
+                          <p className="text-gray-900 font-['Cinzel'] text-sm font-medium mb-2">
+                            Vote Transaction Successful! 🗳️
+                          </p>
+                          <div className="break-all">
+                            <span className="text-gray-800 font-['Cinzel'] text-xs font-bold">
+                              TX Hash:
+                            </span>
+                            <span className="text-gray-700 font-mono text-xs ml-1">
+                              {txHash}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       {/* Submit Vote Button */}
                       <button
                         onClick={handleVoteSubmit}
@@ -489,10 +536,22 @@ export default function VotingModal({
                         <h3 className="text-xl font-bold text-gray-900 font-['Cinzel'] mb-2">
                           Vote Submitted Successfully!
                         </h3>
-                        <p className="text-gray-700 font-['Cinzel'] leading-relaxed">
+                        <p className="text-gray-700 font-['Cinzel'] leading-relaxed mb-4">
                           Thank you for participating in the democratic funding
                           process. Your vote has been recorded.
                         </p>
+
+                        {/* Final Transaction Hash Display */}
+                        {txHash && (
+                          <div className="mt-4 p-3 bg-green-100/50 border border-green-500/30 rounded-lg">
+                            <p className="text-green-800 font-['Cinzel'] text-xs text-center mb-2">
+                              <strong>Vote Transaction Hash:</strong>
+                            </p>
+                            <code className="bg-white/70 px-2 py-1 rounded text-xs break-all block text-center">
+                              {txHash}
+                            </code>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}

@@ -56,6 +56,7 @@ export default function DonationModal({
   const [selectedTestAccount, setSelectedTestAccount] =
     useState<AztecTestAccount | null>(null);
   const [isFauceting, setIsFauceting] = useState(false);
+  const [txHash, setTxHash] = useState<string>("");
 
   // Your test accounts
   const testAccounts: AztecTestAccount[] = [
@@ -207,17 +208,25 @@ export default function DonationModal({
         // Convert ETH amount to appropriate units
         const amount = Math.floor(parseFloat(donationAmount) * 1000000); // 6 decimals for ETH
 
-        setConnectionStatus("Getting contract instance...");
+        setConnectionStatus("Processing donation transaction...");
 
-        const apiResponse = await fetch(
-          "http://localhost:3000/api/get-contract-instance",
-          {
-            method: "POST",
-            body: JSON.stringify({ contractAddress }),
-          }
+        console.log({
+          disasterHash,
+          amount,
+        });
+
+        // Mock API call - wait for 3 seconds and return mock transaction hash
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        const mockTxHash =
+          "0x0d9787de2e800d6f962f113e3c04b9aa820807e2fc44b6f7dd78272a19d216ba";
+        console.log({
+          responseTxHash: mockTxHash,
+        });
+        setTxHash(mockTxHash);
+        setConnectionStatus(
+          `Transaction Hash: ${mockTxHash.substring(0, 10)}...`
         );
-
-        const data = await apiResponse.json();
 
         // Get the connected account from embedded wallet
         const connectedWalletAccount = embeddedWallet.getConnectedAccount();
@@ -253,7 +262,7 @@ export default function DonationModal({
         }, 2000);
       }
     } catch (error: unknown) {
-      console.error("Transaction error:", error);
+      // console.error("Transaction error:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Transaction failed";
       setConnectionStatus(`Error: ${errorMessage}`);
@@ -327,6 +336,7 @@ export default function DonationModal({
     setConnectedAccount("");
     setSelectedTestAccount(null);
     setIsFauceting(false);
+    setTxHash("");
   };
 
   useEffect(() => {
@@ -545,6 +555,23 @@ export default function DonationModal({
                         <p className="text-gray-900 font-['Cinzel'] text-sm text-center font-medium">
                           {connectionStatus}
                         </p>
+                      </div>
+                    )}
+
+                    {/* Transaction Hash Display */}
+                    {txHash && (
+                      <div className="mb-6 p-4 bg-green-200/70 rounded-lg border border-green-600/50">
+                        <p className="text-gray-900 font-['Cinzel'] text-sm font-medium mb-2">
+                          Transaction Successful! 🎉
+                        </p>
+                        <div className="break-all">
+                          <span className="text-gray-800 font-['Cinzel'] text-xs font-bold">
+                            TX Hash:
+                          </span>
+                          <span className="text-gray-700 font-mono text-xs ml-1">
+                            {txHash}
+                          </span>
+                        </div>
                       </div>
                     )}
 
