@@ -1,32 +1,15 @@
 "use client";
 
-import { Organization, Event } from "@/lib/types/database";
-import { User } from "@supabase/supabase-js";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import TiltedCard from "@/components/TiltedCard";
-import DivineLoader from "@/components/DivineLoader";
-import dynamic from "next/dynamic";
-
-// Dynamically import InteractiveGlobe to avoid SSR issues
-const InteractiveGlobe = dynamic(
-  () => import("@/components/InteractiveGlobe"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="relative w-full h-96 bg-black rounded-lg overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-          <DivineLoader message="Loading Divine Globe..." size="large" />
-        </div>
-      </div>
-    ),
-  }
-);
+import React from "react";
+import { Event } from "../lib/types/database";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Header from "./Header";
+import TiltedCard from "./TiltedCard";
+import DivineLoader from "./DivineLoader";
+import InteractiveGlobe from "./InteractiveGlobe";
 
 interface EventsClientProps {
-  user: User | null;
-  organization: Organization | null;
   events: Event[];
 }
 
@@ -40,11 +23,9 @@ interface DisasterLocation {
 }
 
 export default function EventsClient({
-  user,
-  organization,
   events,
 }: EventsClientProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // Consistent date formatting function to avoid hydration mismatch
   const formatDate = (dateString: string) => {
@@ -350,7 +331,7 @@ export default function EventsClient({
 
   const handleEventClick = (eventId: string) => {
     // Navigate to event detail page
-    router.push(`/event/${eventId}`);
+    navigate(`/event/${eventId}`);
   };
 
   return (
@@ -360,7 +341,7 @@ export default function EventsClient({
         <div className="absolute inset-0 bg-gradient-to-br from-[#d4af8c] via-[#c9a876] to-[#b8956a]"></div>
         <div className="absolute inset-0 opacity-60">
           <img
-            src="/assets/clouds.PNG"
+            src="/assets/clouds.png"
             alt="Divine Clouds"
             className="w-full h-full object-cover"
           />
@@ -576,62 +557,25 @@ export default function EventsClient({
           )}
         </div>
 
-        {/* Information Section for Non-logged-in Users */}
-        {!user && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 font-['Cinzel'] drop-shadow-lg bg-gradient-to-b from-gray-800 to-gray-900 bg-clip-text text-transparent">
-              Answer the Divine Call to Serve
-            </h2>
-            <p className="text-gray-800 mb-8 font-['Cinzel'] text-xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-sm">
-              Join our sacred mission to distribute divine resources to
-              communities touched by earthly trials. Your compassion can become
-              their salvation.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/login"
-                className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#ffd700] to-[#ffed4e] text-gray-900 font-bold text-lg rounded-xl hover:from-[#ffed4e] hover:to-[#ffd700] transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Begin Sacred Journey
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center px-10 py-5 bg-gray-900 hover:bg-gray-800 text-white font-bold text-lg rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Discover Our Mission
-              </Link>
-            </div>
+        {/* Information Section */}
+        <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 font-['Cinzel'] drop-shadow-lg bg-gradient-to-b from-gray-800 to-gray-900 bg-clip-text text-transparent">
+            Answer the Divine Call to Serve
+          </h2>
+          <p className="text-gray-800 mb-8 font-['Cinzel'] text-xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-sm">
+            Join our sacred mission to distribute divine resources to
+            communities touched by earthly trials. Your compassion can become
+            their salvation.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/"
+              className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#ffd700] to-[#ffed4e] text-gray-900 font-bold text-lg rounded-xl hover:from-[#ffed4e] hover:to-[#ffd700] transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
+            >
+              Discover Our Mission
+            </Link>
           </div>
-        )}
-
-        {/* Quick Actions for Logged-in Users */}
-        {user && organization && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 font-['Cinzel'] text-center drop-shadow-lg bg-gradient-to-b from-gray-800 to-gray-900 bg-clip-text text-transparent">
-              Divine Administration
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Link
-                href="/kyb"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Sacred Registry
-              </Link>
-              <Link
-                href="/petitions"
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Divine Petitions
-              </Link>
-              <Link
-                href="/documents"
-                className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold py-5 px-8 rounded-xl text-center text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] drop-shadow-sm"
-              >
-                Sacred Scrolls
-              </Link>
-            </div>
-          </div>
-        )}
+        </div>
       </main>
     </div>
   );

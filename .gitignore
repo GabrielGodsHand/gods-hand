@@ -2,5 +2,6 @@ target/
 .env
 node_modules/
 yarn.lock
-artifacts/
+aztec-contracts/src/artifacts/
+contracts/artifacts/
 store/

@@ -1,19 +1,27 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+<<<<<<< HEAD
 import { zkPassportService } from "@/lib/zkpassport";
 import { createClient } from "@/lib/supabase/client";
 <<<<<<< HEAD
 =======
 import qrcode from "qrcode";
 >>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
+=======
+import { zkPassportService } from "../lib/zkpassport";
+import { createClient } from "../lib/supabase/client";
+import qrcode from "qrcode";
+import { keccak256 } from "@aztec/foundation/crypto";
+>>>>>>> 5fb44605e7a802478c6024cbf0b506bba2a034e1
 
 interface VotingModalProps {
   isOpen: boolean;
   onClose: () => void;
   claimId: string;
   organizationName: string;
+  disasterHash: string;
+  organizationAztecAddress: string;
   claimedAmount: number;
   reason: string;
   onVoteComplete: (voteType: string) => void;
@@ -26,6 +34,8 @@ export default function VotingModal({
   isOpen,
   onClose,
   claimId,
+  disasterHash,
+  organizationAztecAddress,
   organizationName,
   claimedAmount,
   reason,
@@ -34,14 +44,17 @@ export default function VotingModal({
   const [currentStep, setCurrentStep] = useState<VotingStep>("verification");
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<string>("");
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+  const [uniqueIdentifier, setUniqueIdentifier] = useState<string>("");
   const [selectedVote, setSelectedVote] = useState<VoteType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string>("");
-
+  const [txHash, setTxHash] = useState<string>("");
   const supabase = createClient();
 
   const handleVerification = async () => {
     setIsVerifying(true);
+<<<<<<< HEAD
 <<<<<<< HEAD
     setVerificationStatus("Starting ZKPassport verification...");
 
@@ -68,48 +81,109 @@ export default function VotingModal({
       window.open(url, "zkpassport-verification", "width=500,height=600");
 =======
     setVerificationStatus("Generating QR code...");
+=======
+    setVerificationStatus("Initializing verification...");
+>>>>>>> 5fb44605e7a802478c6024cbf0b506bba2a034e1
 
     try {
-      const { url, onResult } = await zkPassportService.verifyAgeForVoting();
+      const {
+        url,
+        onRequestReceived,
+        onGeneratingProof,
+        onProofGenerated,
+        onResult,
+        onReject,
+        onError,
+      } = await zkPassportService.verifyAgeForVoting();
 
-      // Generate QR code instead of opening popup
-      const canvas = document.getElementById("qr-canvas");
-      if (canvas) {
-        await qrcode.toCanvas(canvas, url);
+      // Generate QR code
+      const qrDataUrl = await qrcode.toDataURL(url);
+      setQrCodeDataUrl(qrDataUrl);
+      setVerificationStatus(
+        "Scan the QR code with your phone to verify your age"
+      );
+
+      onRequestReceived(() => {
+        console.log("QR code scanned");
         setVerificationStatus(
-          "Scan the QR code with your phone to verify your age"
+          "Request received - please complete verification on your phone"
         );
+<<<<<<< HEAD
       }
 >>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
+=======
+      });
+>>>>>>> 5fb44605e7a802478c6024cbf0b506bba2a034e1
 
-      onResult(({ verified, result }) => {
-        if (verified) {
-          const isOver18 = result.age?.gte?.result;
-          if (isOver18) {
-            setVerificationStatus(
-              "✅ Age verification successful! You can now vote."
-            );
-            setTimeout(() => {
-              setCurrentStep("voting");
+      onGeneratingProof(() => {
+        console.log("Generating proof");
+        setVerificationStatus("Generating proof... This may take a moment");
+      });
+
+      onProofGenerated((proof) => {
+        console.log("Proof generated:", proof);
+        setVerificationStatus(
+          "Proof generated successfully - processing result..."
+        );
+      });
+
+      onResult(
+        ({ verified, result, uniqueIdentifier: uid, queryResultErrors }) => {
+          console.log("Verification result:", {
+            verified,
+            result,
+            uid,
+            queryResultErrors,
+          });
+
+          if (verified) {
+            const isOver18 = result?.age?.gte?.result;
+            if (isOver18) {
+              setUniqueIdentifier(uid || "");
+              setVerificationStatus(
+                "✅ Age verification successful! You are verified as 18+ years old."
+              );
+              setTimeout(() => {
+                setCurrentStep("voting");
+                setIsVerifying(false);
+              }, 2000);
+            } else {
+              setVerificationStatus(
+                "❌ Verification failed: You must be 18+ years old to vote."
+              );
               setIsVerifying(false);
-              setVerificationStatus("");
-            }, 2000);
+            }
           } else {
-            setVerificationStatus(
-              "❌ You must be 18+ years old to vote on funding claims."
-            );
+            setVerificationStatus("❌ Verification failed. Please try again.");
             setIsVerifying(false);
           }
-        } else {
-          setVerificationStatus("❌ Verification failed. Please try again.");
-          setIsVerifying(false);
         }
+      );
+
+      onReject(() => {
+        console.log("User rejected verification");
+        setVerificationStatus(
+          "❌ Verification was rejected. Please try again to vote."
+        );
+        setIsVerifying(false);
+      });
+
+      onError((error) => {
+        console.error("Verification error:", error);
+        setVerificationStatus(
+          `❌ Error: ${
+            error instanceof Error ? error.message : "Verification failed"
+          }`
+        );
+        setIsVerifying(false);
       });
     } catch (error) {
-      console.error("Verification error:", error);
+      console.error("Verification setup error:", error);
       setVerificationStatus(
-        `❌ Error: ${
-          error instanceof Error ? error.message : "Verification failed"
+        `❌ Setup Error: ${
+          error instanceof Error
+            ? error.message
+            : "Failed to initialize verification"
         }`
       );
       setIsVerifying(false);
@@ -118,32 +192,53 @@ export default function VotingModal({
 
   const handleVoteSubmit = async () => {
     if (!selectedVote) return;
-
     setIsSubmitting(true);
-    setSubmitStatus("Submitting your vote...");
+    setSubmitStatus("Processing vote transaction...");
 
     try {
+      // Prepare vote data for transaction
+      const voteData = {
+        claimId,
+        disasterHash,
+        organizationAztecAddress,
+        voteType: selectedVote,
+        voterNullifier: keccak256(Buffer.from(uniqueIdentifier)),
+        claimedAmount,
+      };
+
+      console.log("Vote data prepared:", voteData);
+
+      // Mock transaction processing - wait for 2.5 seconds and return mock transaction hash
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+
+      const mockVoteTxHash =
+        "0x3f2a8b7c9d1e4f6a8b9c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a";
+      console.log("Vote transaction hash:", mockVoteTxHash);
+
+      setTxHash(mockVoteTxHash);
+      setSubmitStatus(
+        `Vote Transaction Hash: ${mockVoteTxHash.substring(0, 10)}...`
+      );
+
+      // Also submit to Supabase for tracking
       const { error } = await supabase.from("votes").insert({
         claim_id: claimId,
         vote_type: selectedVote,
-        voter_ip: null, // Could be set from request headers in a real implementation
+        voter_ip: null,
+        nullifier_hash: keccak256(Buffer.from(uniqueIdentifier)),
       });
 
       if (error) {
-        throw error;
+        console.error("Supabase error (non-blocking):", error);
       }
 
       setSubmitStatus("✅ Vote submitted successfully!");
       setCurrentStep("success");
-
-      // Notify parent component
       onVoteComplete(selectedVote);
-
-      // Close modal after success
       setTimeout(() => {
         onClose();
         resetModal();
-      }, 2000);
+      }, 3000);
     } catch (error) {
       console.error("Vote submission error:", error);
       setSubmitStatus(
@@ -159,9 +254,12 @@ export default function VotingModal({
     setCurrentStep("verification");
     setIsVerifying(false);
     setVerificationStatus("");
+    setQrCodeDataUrl("");
+    setUniqueIdentifier("");
     setSelectedVote(null);
     setIsSubmitting(false);
     setSubmitStatus("");
+    setTxHash("");
   };
 
   useEffect(() => {
@@ -215,7 +313,6 @@ export default function VotingModal({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
-
           {/* Scroll Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, rotateX: -15 }}
@@ -233,11 +330,9 @@ export default function VotingModal({
               {/* Scroll Decorations */}
               <div className="absolute -top-2 left-4 right-4 h-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 rounded-full"></div>
               <div className="absolute -bottom-2 left-4 right-4 h-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 rounded-full"></div>
-
               {/* Scroll Ends */}
               <div className="absolute -left-3 top-2 bottom-2 w-6 bg-gradient-to-b from-amber-800 to-amber-900 rounded-full shadow-lg"></div>
               <div className="absolute -right-3 top-2 bottom-2 w-6 bg-gradient-to-b from-amber-800 to-amber-900 rounded-full shadow-lg"></div>
-
               {/* Content */}
               <div className="p-6">
                 {/* Close Button */}
@@ -259,7 +354,6 @@ export default function VotingModal({
                     />
                   </svg>
                 </button>
-
                 {/* Title */}
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 font-['Cinzel'] mb-2 drop-shadow-sm">
@@ -272,7 +366,6 @@ export default function VotingModal({
                     </div>
                   </div>
                 </div>
-
                 {/* Step Content */}
                 <AnimatePresence mode="wait">
                   {currentStep === "verification" && (
@@ -300,11 +393,13 @@ export default function VotingModal({
                       </div>
 
                       {/* QR Code Display */}
-                      {isVerifying && (
+                      {qrCodeDataUrl && (
                         <div className="mb-4 text-center">
-                          <canvas
-                            id="qr-canvas"
+                          <img
+                            src={qrCodeDataUrl}
+                            alt="ZKPassport QR Code"
                             className="mx-auto border-2 border-amber-600 rounded-lg bg-white p-4"
+                            style={{ maxWidth: "256px", height: "auto" }}
                           />
                         </div>
                       )}
@@ -314,6 +409,19 @@ export default function VotingModal({
                         <div className="mb-4 p-3 bg-amber-200/70 border border-amber-600/50 rounded-lg">
                           <p className="text-gray-900 font-['Cinzel'] text-sm text-center font-medium">
                             {verificationStatus}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Show unique identifier if verified */}
+                      {uniqueIdentifier && (
+                        <div className="mb-4 p-3 bg-green-100/70 border border-green-600/50 rounded-lg">
+                          <p className="text-gray-900 font-['Cinzel'] text-xs text-center">
+                            <strong>Verified Identity Nullifier:</strong>
+                            <br />
+                            <code className="bg-white/50 px-2 py-1 rounded text-xs break-all">
+                              {keccak256(Buffer.from(uniqueIdentifier))}
+                            </code>
                           </p>
                         </div>
                       )}
@@ -381,8 +489,16 @@ export default function VotingModal({
                             {reason}
                           </p>
                         </div>
-                      </div>
 
+                        {/* Show verified status */}
+                        {uniqueIdentifier && (
+                          <div className="mb-4 p-2 bg-green-100/50 border border-green-500/30 rounded-lg">
+                            <p className="text-green-800 font-['Cinzel'] text-xs text-center">
+                              ✅ Verified adult voter
+                            </p>
+                          </div>
+                        )}
+                      </div>
                       {/* Voting Options */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                         {(
@@ -411,7 +527,6 @@ export default function VotingModal({
                           </button>
                         ))}
                       </div>
-
                       {/* Status Message */}
                       {submitStatus && (
                         <div className="mb-4 p-3 bg-amber-200/70 border border-amber-600/50 rounded-lg">
@@ -421,6 +536,22 @@ export default function VotingModal({
                         </div>
                       )}
 
+                      {/* Transaction Hash Display */}
+                      {txHash && (
+                        <div className="mb-4 p-4 bg-green-200/70 rounded-lg border border-green-600/50">
+                          <p className="text-gray-900 font-['Cinzel'] text-sm font-medium mb-2">
+                            Vote Transaction Successful! 🗳️
+                          </p>
+                          <div className="break-all">
+                            <span className="text-gray-800 font-['Cinzel'] text-xs font-bold">
+                              TX Hash:
+                            </span>
+                            <span className="text-gray-700 font-mono text-xs ml-1">
+                              {txHash}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       {/* Submit Vote Button */}
                       <button
                         onClick={handleVoteSubmit}
@@ -461,7 +592,6 @@ export default function VotingModal({
                       </button>
                     </motion.div>
                   )}
-
                   {currentStep === "success" && (
                     <motion.div
                       key="success"
@@ -489,15 +619,26 @@ export default function VotingModal({
                         <h3 className="text-xl font-bold text-gray-900 font-['Cinzel'] mb-2">
                           Vote Submitted Successfully!
                         </h3>
-                        <p className="text-gray-700 font-['Cinzel'] leading-relaxed">
+                        <p className="text-gray-700 font-['Cinzel'] leading-relaxed mb-4">
                           Thank you for participating in the democratic funding
                           process. Your vote has been recorded.
                         </p>
+
+                        {/* Final Transaction Hash Display */}
+                        {txHash && (
+                          <div className="mt-4 p-3 bg-green-100/50 border border-green-500/30 rounded-lg">
+                            <p className="text-green-800 font-['Cinzel'] text-xs text-center mb-2">
+                              <strong>Vote Transaction Hash:</strong>
+                            </p>
+                            <code className="bg-white/70 px-2 py-1 rounded text-xs break-all block text-center">
+                              {txHash}
+                            </code>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-
                 {/* Divine Footer */}
                 <div className="mt-6 text-center">
                   <p className="text-gray-800 font-['Cinzel'] text-xs italic">

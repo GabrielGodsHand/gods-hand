@@ -1,36 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
+import React, { useState, useEffect } from "react";
 import {
-  Organization,
   Event,
   ClaimWithOrganization,
-} from "@/lib/types/database";
-import { createClient } from "@/lib/supabase/client";
-import Header from "@/components/Header";
-import DivineLoader from "@/components/DivineLoader";
-import DecryptedText from "@/components/DecryptedText";
-import DonationModal from "@/components/DonationModal";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+} from "../lib/types/database";
+import { eventsService } from "../lib/dynamodb/events";
+import { claimsService } from "../lib/dynamodb/claims";
+import Header from "./Header";
+import DivineLoader from "./DivineLoader";
+import DecryptedText from "./DecryptedText";
+import DonationModal from "./DonationModal";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import RequestFundsModal from "./RequestFundsModal";
 import VotingModal from "./VotingModal";
 
 interface EventDetailClientProps {
-  user: User | null;
-  organization: Organization | null;
   eventId: string;
 }
 
-export default function EventDetailClient({
-  user,
-  organization,
-  eventId,
-}: EventDetailClientProps) {
-  const router = useRouter();
-  const supabase = createClient();
+export default function EventDetailClient({ eventId }: EventDetailClientProps) {
+  const navigate = useNavigate();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [claims, setClaims] = useState<ClaimWithOrganization[]>([]);
@@ -48,21 +40,17 @@ export default function EventDetailClient({
     isOpen: boolean;
     claimId: string;
     organizationName: string;
+    organizationAztecAddress: string;
     claimedAmount: number;
     reason: string;
   }>({
     isOpen: false,
     claimId: "",
     organizationName: "",
+    organizationAztecAddress: "",
     claimedAmount: 0,
     reason: "",
   });
-
-  // Find user's claim if they are logged in and have an organization
-  const userClaim =
-    user && organization
-      ? claims.find((claim) => claim.org_id === organization.id)
-      : null;
 
   // Consistent date formatting function to avoid hydration mismatch
   const formatDate = (dateString: string) => {
@@ -91,38 +79,16 @@ export default function EventDetailClient({
         setLoading(true);
 
         // Fetch event details
-        const { data: eventData, error: eventError } = await supabase
-          .from("events")
-          .select("*")
-          .eq("id", eventId)
-          .single();
-
-        if (eventError) {
-          console.error("Error fetching event:", eventError);
+        const eventData = await eventsService.getEventById(eventId);
+        if (!eventData) {
+          console.error("Event not found");
           return;
         }
-
         setEvent(eventData);
 
         // Fetch claims for this event
-        const { data: claimsData, error: claimsError } = await supabase
-          .from("claims")
-          .select(
-            `
-            *,
-            organizations!claims_org_id_fkey (
-              organization_name
-            )
-          `
-          )
-          .eq("event_id", eventId)
-          .order("created_at", { ascending: false });
-
-        if (claimsError) {
-          console.error("Error fetching claims:", claimsError);
-        } else {
-          setClaims(claimsData || []);
-        }
+        const claimsData = await claimsService.getClaimsByEventId(eventId);
+        setClaims(claimsData);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -131,7 +97,7 @@ export default function EventDetailClient({
     }
 
     fetchData();
-  }, [eventId, supabase]);
+  }, [eventId]);
 
   const handleVote = async (claimId: string, voteType: string) => {
     setSelectedVote((prev) => ({ ...prev, [claimId]: voteType }));
@@ -143,8 +109,8 @@ export default function EventDetailClient({
     setVotingModal({
       isOpen: true,
       claimId: claim.id,
-      organizationName:
-        claim.organizations?.organization_name || "Unknown Organization",
+      organizationAztecAddress: claim.organization_aztec_address || "",
+      organizationName: claim.organization_name || "Unknown Organization",
       claimedAmount: claim.claimed_amount,
       reason: claim.reason,
     });
@@ -191,7 +157,7 @@ export default function EventDetailClient({
         <div className="absolute inset-0 bg-gradient-to-br from-[#d4af8c] via-[#c9a876] to-[#b8956a]"></div>
         <div className="absolute inset-0 opacity-60">
           <img
-            src="/assets/clouds.PNG"
+            src="/assets/clouds.png"
             alt="Divine Clouds"
             className="w-full h-full object-cover"
           />
@@ -208,7 +174,7 @@ export default function EventDetailClient({
         {/* Back Button */}
         <div className="mb-6">
           <button
-            onClick={() => router.back()}
+            onClick={() => navigate(-1)}
             className="inline-flex items-center text-gray-700 hover:text-gray-900 font-['Cinzel'] transition-colors"
           >
             <svg
@@ -229,12 +195,7 @@ export default function EventDetailClient({
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <DivineLoader
-            message="Loading Sacred Event Details..."
-            size="large"
-          />
-        )}
+        {loading && <DivineLoader message="Loading Details..." size="large" />}
 
         {/* Event Not Found */}
         {!loading && !event && (
@@ -357,84 +318,6 @@ export default function EventDetailClient({
                 </div>
               </div>
             </div>
-
-            {/* My Claim Container - Only show if user is logged in and has a claim */}
-            {userClaim && (
-              <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 font-['Cinzel'] flex items-center drop-shadow-sm">
-                  <svg
-                    className="w-8 h-8 mr-4 text-amber-700"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  My Claim Status
-                </h2>
-
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 border border-white/30">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 font-['Cinzel'] drop-shadow-sm">
-                        Your Funding Request
-                      </h3>
-                      <p className="text-base text-gray-700 font-['Cinzel'] font-medium mt-1">
-                        Requested: ${userClaim.claimed_amount.toLocaleString()}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-4 py-2 rounded-full text-sm font-bold border ${getClaimStateColor(
-                        userClaim.claim_state
-                      )} font-['Cinzel'] drop-shadow-sm`}
-                    >
-                      {getClaimStateText(userClaim.claim_state)}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-800 font-['Cinzel'] text-base mb-4 leading-relaxed font-medium">
-                    {userClaim.reason}
-                  </p>
-
-                  <div className="text-sm text-gray-600 font-['Cinzel'] font-medium">
-                    Submitted: {formatDateTime(userClaim.created_at)}
-                  </div>
-
-                  {userClaim.claim_state === "voting" && (
-                    <div className="mt-4 p-4 bg-blue-50/50 rounded-lg border border-blue-200/50">
-                      <p className="text-blue-800 font-['Cinzel'] font-medium text-center">
-                        🗳️ Your claim is currently being reviewed by the
-                        community. Check the Fund Claims tab to see voting
-                        progress.
-                      </p>
-                    </div>
-                  )}
-
-                  {userClaim.claim_state === "approved" && (
-                    <div className="mt-4 p-4 bg-green-50/50 rounded-lg border border-green-200/50">
-                      <p className="text-green-800 font-['Cinzel'] font-medium text-center">
-                        ✅ Congratulations! Your claim has been approved. Funds
-                        will be distributed shortly.
-                      </p>
-                    </div>
-                  )}
-
-                  {userClaim.claim_state === "rejected" && (
-                    <div className="mt-4 p-4 bg-red-50/50 rounded-lg border border-red-200/50">
-                      <p className="text-red-800 font-['Cinzel'] font-medium text-center">
-                        ❌ Your claim was not approved by the community. You may
-                        submit a new request with additional justification.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Tabbed Content Section */}
             <div className="mb-8">
@@ -650,7 +533,7 @@ export default function EventDetailClient({
                             <div className="flex justify-between items-start mb-4">
                               <div>
                                 <h3 className="text-xl font-bold text-gray-900 font-['Cinzel'] drop-shadow-sm">
-                                  {claim.organizations?.organization_name ||
+                                  {claim.organization_name ||
                                     "Unknown Organization"}
                                 </h3>
                                 <div className="text-2xl font-black text-amber-800 font-['Cinzel'] font-bold mt-2 drop-shadow-lg">
@@ -812,51 +695,18 @@ export default function EventDetailClient({
               </div>
 
               {/* Request Button */}
-              {user && organization ? (
-                <div className="text-center">
-                  <button
-                    onClick={() => setIsRequestFundsModalOpen(true)}
-                    disabled={!!userClaim}
-                    className={`font-bold py-6 px-12 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] text-xl ${
-                      userClaim
-                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                        : "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white"
-                    }`}
-                  >
-                    {userClaim ? "Request Already Submitted" : "Request Funds"}
-                  </button>
-                  <p className="text-gray-600 font-['Cinzel'] text-sm mt-4 italic">
-                    {userClaim
-                      ? "✅ You have already submitted a funding request for this event"
-                      : "💡 Anonymous voting ensures fair and transparent fund distribution"}
-                  </p>
-                </div>
-              ) : user && !organization ? (
-                <div className="text-center">
-                  <Link
-                    href="/kyb"
-                    className="inline-block bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] text-xl"
-                  >
-                    Complete KYB Verification
-                  </Link>
-                  <p className="text-gray-600 font-['Cinzel'] text-sm mt-4 italic">
-                    💡 Complete organization verification to submit funding
-                    requests
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <Link
-                    href="/login"
-                    className="inline-block bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] text-xl"
-                  >
-                    Sign In to Request Funds
-                  </Link>
-                  <p className="text-gray-600 font-['Cinzel'] text-sm mt-4 italic">
-                    💡 Register your organization to submit funding requests
-                  </p>
-                </div>
-              )}
+              <div className="text-center">
+                <button
+                  onClick={() => setIsRequestFundsModalOpen(true)}
+                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-6 px-12 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] font-['Cinzel'] text-xl"
+                >
+                  Request Funds
+                </button>
+                <p className="text-gray-600 font-['Cinzel'] text-sm mt-4 italic">
+                  💡 Anonymous voting ensures fair and transparent fund
+                  distribution
+                </p>
+              </div>
             </div>
           </>
         )}
@@ -867,28 +717,28 @@ export default function EventDetailClient({
         isOpen={isDonationModalOpen}
         onClose={() => setIsDonationModalOpen(false)}
         eventTitle={event?.title || "Disaster Relief Event"}
+        disasterHash={event?.disaster_hash || ""}
       />
 
       {/* Request Funds Modal */}
-      {user && organization && (
-        <RequestFundsModal
-          isOpen={isRequestFundsModalOpen}
-          onClose={() => setIsRequestFundsModalOpen(false)}
-          eventTitle={event?.title || "Disaster Relief Event"}
-          eventId={event?.id || ""}
-          user={user}
-          organization={organization}
-        />
-      )}
+      <RequestFundsModal
+        isOpen={isRequestFundsModalOpen}
+        onClose={() => setIsRequestFundsModalOpen(false)}
+        eventTitle={event?.title || "Disaster Relief Event"}
+        eventId={event?.id || ""}
+      />
 
       {/* Voting Modal */}
       {votingModal.isOpen && (
         <VotingModal
           isOpen={votingModal.isOpen}
+          disasterHash={event?.disaster_hash || ""}
+          organizationAztecAddress={votingModal.organizationAztecAddress || ""}
           onClose={() =>
             setVotingModal({
               isOpen: false,
               claimId: "",
+              organizationAztecAddress: "",
               organizationName: "",
               claimedAmount: 0,
               reason: "",

@@ -4,13 +4,17 @@ export class ZKPassportService {
   private zkPassport: ZKPassport;
 
   constructor() {
-    this.zkPassport = new ZKPassport(
-      process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000"
-    );
+    // Use window.location.hostname if available, fallback to localhost
+    const domain =
+      typeof window !== "undefined" ? window.location.hostname : "localhost";
+    this.zkPassport = new ZKPassport(domain);
   }
 
-  async verifyAge(minAge: number = 18): Promise<{
+  async verifyAgeForVoting(): Promise<{
     url: string;
+    onRequestReceived: (callback: () => void) => void;
+    onGeneratingProof: (callback: () => void) => void;
+    onProofGenerated: (callback: (proof: any) => void) => void;
     onResult: (
       callback: (data: {
         uniqueIdentifier: string | undefined;
@@ -19,39 +23,25 @@ export class ZKPassportService {
         queryResultErrors?: QueryResultErrors;
       }) => void
     ) => void;
+    onReject: (callback: () => void) => void;
+    onError: (callback: (error: unknown) => void) => void;
   }> {
     try {
       const queryBuilder = await this.zkPassport.request({
-        name: "ZKPassport",
-        logo: "https://gods-hand.vercel.app/hand.png",
-        purpose: `Prove you are ${minAge}+ years old`,
+        name: "Gods Hand Voting",
+        logo: "https://gods-hand.vercel.app/assets/hand.png",
+        purpose: "Prove you are 18+ years old to vote on funding claims",
         scope: "adult",
+        mode: "fast",
         devMode: true,
       });
 
-      const { url, onResult } = queryBuilder.gte("age", minAge).done();
-
-      return { url, onResult };
+      return queryBuilder.gte("age", 18).done();
     } catch (error) {
       console.error("ZKPassport verification error:", error);
       throw error;
     }
   }
-
-  async verifyAgeForVoting(): Promise<{
-    url: string;
-    onResult: (
-      callback: (data: {
-        uniqueIdentifier: string | undefined;
-        verified: boolean;
-        result: QueryResult;
-        queryResultErrors?: QueryResultErrors;
-      }) => void
-    ) => void;
-  }> {
-    return this.verifyAge(18);
-  }
 }
 
-// Export a default instance
 export const zkPassportService = new ZKPassportService();
