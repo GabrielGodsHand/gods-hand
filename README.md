@@ -1,109 +1,231 @@
 # God's Hand
 
-A comprehensive platform for disaster relief fund distribution with KYB (Know Your Business) verification for NGOs and non-profit organizations.
+> Where Heaven Hears, and Humanity Helps — One Anonymous Gift at a Time.
 
-## Features
+**God's Hand** is a privacy-preserving disaster relief donation platform that combines Aztec Protocol's zero-knowledge technology with AI-powered verification agents and decentralized governance. The system enables anonymous donations while ensuring funds reach legitimate organizations through community-driven voting mechanisms.
 
-### 🌟 Divine Parallax Landing Page
-- Stunning parallax effect with divine hand emerging from clouds
-- Scroll-controlled animations
-- Responsive design with mobile optimization
-- Beautiful gradient backgrounds and divine aesthetics
+## 🌟 Features
 
-### 🔐 Authentication & Security
-- Email-based authentication with Supabase Auth
-- Secure session management
-- Row Level Security (RLS) policies
-- Email verification for new accounts
+### 🔒 Privacy-First Donations
 
-### 📋 Comprehensive KYB System
-- **7-Step KYB Form** with real-world compliance data:
-  1. Basic Organization Information
-  2. Contact & Address Details
-  3. Business Details & Industry Classification
-  4. Banking Information
-  5. Ultimate Beneficial Owners (UBOs)
-  6. Document Upload & Verification
-  7. Review & Submission
+- **Zero-Knowledge Donations**: Donate anonymously using Aztec Protocol's privacy technology
+- **zkPassport Integration**: Age verification without revealing personal data
+- **Nullifier System**: Prevents double donations while maintaining anonymity
 
-### 📊 KYB Data Collection
-Based on real-world KYB requirements:
-- Organization registration details
-- Legal structure and incorporation information
-- Industry classification (NAICS codes)
-- Ultimate Beneficial Owner information
-- Director and key personnel details
-- Banking and financial information
-- Risk assessment and compliance checks
-- Document verification system
+### 🤖 AI-Powered Verification
 
-### 💰 Fund Management
-- Multiple disaster relief fund vaults
-- Real-time fund availability tracking
-- Petition submission system
-- Status tracking for applications
+- **TEE Agents**: Trusted Execution Environment agents for disaster verification
+- **Automated Disaster Detection**: AI agents monitor and create disaster events
+- **Smart Fund Distribution**: AI-assisted fund allocation based on verified needs
 
-### 📁 Document Management
-- Secure document upload to Supabase Storage
-- Support for all KYB document types:
-  - Certificate of Incorporation
-  - Articles of Association
-  - Business Licenses
-  - Tax Certificates
-  - Bank Statements
-  - Audited Financial Statements
-  - UBO Declarations
-  - And more...
+### 🗳️ Decentralized Governance
 
-## Tech Stack
+- **Community Voting**: Stake-based voting on fund releases
+- **Organization Verification**: Community vets relief organizations
+- **Transparent Distribution**: All fund movements tracked on-chain
 
-- **Frontend**: Next.js 14, React, TypeScript
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **Styling**: CSS3 with custom divine theme
-- **Authentication**: Supabase Auth with email verification
-- **Database**: PostgreSQL with comprehensive KYB schema
-- **File Storage**: Supabase Storage with secure buckets
+### 🌍 Global Relief Network
 
-## Setup Instructions
+- **Interactive Globe**: Visualize disasters and donations worldwide
+- **Real-time Updates**: Live disaster feed with verified information
+- **Multi-chain Support**: Ethereum and Aztec network integration
+
+## 🏗️ Architecture
+
+```
+God's Hand Platform
+├── Frontend (React + Vite)
+├── Aztec Contracts (Noir)
+├── Ethereum Contracts (Solidity)
+├── Zero-Knowledge Circuits (Noir)
+├── TEE Agents (AI Verification)
+└── Governance System
+```
+
+### Core Components
+
+#### 1. **Aztec Contracts** (`/aztec-contracts`)
+
+- **GodsHand Contract**: Main donation and voting logic
+- **Private Donations**: Anonymous contribution system
+- **Vote Nullifiers**: Prevent double voting while maintaining privacy
+- **Fund Management**: Secure handling of donated assets
+
+#### 2. **Zero-Knowledge Circuits** (`/circuits`)
+
+- **zkPassport Verification**: Age verification without personal data exposure
+- **Honk Proof System**: High-efficiency proof generation
+- **Identity Nullifiers**: Unique user identification without revealing identity
+
+#### 3. **Ethereum Contracts** (`/contracts`)
+
+- **Governance System**: Decentralized decision making
+- **Token Management**: ERC20 token handling and staking
+- **Fee Distribution**: Gas fee management and rewards
+- **Organization Registry**: Verified relief organization database
+
+#### 4. **TEE Agents** (`/TEE`)
+
+- **Verify Agent**: Disaster verification and validation
+- **X Agent**: Social media monitoring and disaster detection
+- **Eliza Framework**: AI character system for automated responses
+
+#### 5. **Frontend Application** (`/frontend`)
+
+- **React + TypeScript**: Modern web interface
+- **3D Globe Visualization**: Interactive world map showing disasters
+- **Wallet Integration**: MetaMask and Aztec wallet support
+- **Real-time Updates**: Live disaster and donation feeds
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
 
-### 1. Clone and Install
+- Node.js ≥ 18.0.0
+- pnpm (recommended)
+- Docker (for TEE agents)
+- Aztec Sandbox (for local development)
+
+### 1. Clone Repository
+
 ```bash
-git clone <repository-url>
-cd hand-of-god-nextjs
-npm install
+git clone https://github.com/your-username/gods-hand.git
+cd gods-hand
 ```
 
-### 2. Supabase Setup
+### 2. Start Aztec Sandbox
 
-#### Create a new Supabase project:
-1. Go to [supabase.com](https://supabase.com)
-2. Create a new project
-3. Note your project URL and anon key
+```bash
+# Install Aztec CLI
+npm install -g @aztec/cli
 
-#### Set up the database:
-1. In your Supabase dashboard, go to SQL Editor
-2. Run the schema from `supabase-schema.sql`
-3. Run the sample data from `sample-data.sql`
+# Start local Aztec network
+aztec start --sandbox
+```
 
-#### Configure Storage:
-The schema automatically creates two storage buckets:
-- `kyb-documents` (private) - for KYB verification documents
-- `organization-logos` (public) - for organization logos
+### 3. Deploy Contracts
 
-### 3. Environment Variables
-Create a `.env.local` file in the root directory:
+```bash
+# Deploy Aztec contracts
+cd aztec-contracts
+npm install
+npm run deploy
+
+# Deploy Ethereum contracts
+cd ../contracts
+npm install
+npx hardhat deploy --network localhost
+```
+
+### 4. Setup Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+# Edit .env with your contract addresses
+npm run dev
+```
+
+### 5. Start TEE Agents
+
+```bash
+cd TEE/verifyagent
+cp .env.example .env
+# Add your API keys to .env
+docker-compose up
+```
+
+## 💻 Development
+
+### Smart Contract Development
+
+#### Aztec Contracts (Noir)
+
+```bash
+cd aztec-contracts
+nargo check          # Check syntax
+nargo test           # Run tests
+nargo compile        # Compile contracts
+```
+
+#### Ethereum Contracts (Solidity)
+
+```bash
+cd contracts
+npx hardhat compile  # Compile contracts
+npx hardhat test     # Run tests
+npx hardhat deploy   # Deploy contracts
+```
+
+### Circuit Development
+
+```bash
+cd circuits
+nargo check          # Verify circuit logic
+nargo prove          # Generate proof
+nargo verify         # Verify proof
+```
+
+### Frontend Development
+
+```bash
+cd frontend
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm run test         # Run tests
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+#### Frontend (`.env`)
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_AZTEC_NODE_URL=http://localhost:8080
+VITE_CONTRACT_ADDRESS=0x...
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-key
 ```
 
-### 4. Run the Application
+#### TEE Agents (`.env`)
+
+```env
+OPENROUTER_API_KEY=your-openrouter-key
+DISCORD_API_TOKEN=your-discord-token
+TWITTER_USERNAME=your-twitter-username
+TWITTER_PASSWORD=your-twitter-password
+```
+
+### Contract Addresses
+
+Update contract addresses in:
+
+- `frontend/src/lib/artifacts/`
+- `aztec-contracts/scripts/deploy_contract.ts`
+- `contracts/scripts/deploy-*.js`
+
+## 🧪 Testing
+
+### Run All Tests
+
+```bash
+# Aztec contract tests
+cd aztec-contracts && npm test
+
+# Ethereum contract tests
+cd contracts && npx hardhat test
+
+# Circuit tests
+cd circuits && nargo test
+
+# Frontend tests
+cd frontend && npm test
+```
+
+### Integration Tests
+
 ```bash
 npm run dev
 ```
@@ -197,3 +319,142 @@ For support and questions, please open an issue in the repository.
 
 
 this is a commit from Marshal
+cd aztec-contracts
+npm run test:integration
+```
+
+## 📖 Usage Guide
+
+### For Donors
+
+1. **Connect Wallet**: Use MetaMask or create Aztec account
+2. **Verify Identity**: Complete zkPassport verification (optional)
+3. **Browse Disasters**: View active disaster relief campaigns
+4. **Donate Anonymously**: Make private donations using Aztec
+5. **Track Impact**: Monitor fund distribution (without revealing your donation)
+
+### For Relief Organizations
+
+1. **Register Organization**: Submit verification documents
+2. **Request Funds**: Create funding requests for specific disasters
+3. **Community Review**: Allow community to vote on your request
+4. **Receive Funds**: Access approved donations for relief work
+5. **Report Impact**: Provide updates on fund usage
+
+### For Community Governors
+
+1. **Stake Tokens**: Lock governance tokens to participate
+2. **Review Requests**: Evaluate organization funding requests
+3. **Cast Votes**: Vote on fund releases and organization verification
+4. **Earn Rewards**: Receive rewards for active participation
+
+## 🛠️ API Reference
+
+### Aztec Contract Methods
+
+```typescript
+// Donate to disaster relief
+await contract.methods.donate(disasterHash, amount).send();
+
+// Vote on fund release
+await contract.methods.vote(disasterHash, orgAddress, voteType).send();
+
+// Create new disaster (agent only)
+await contract.methods.create_disaster(hash, estimatedAmount).send();
+```
+
+### REST API Endpoints
+
+```
+GET /api/disasters           # List active disasters
+GET /api/disasters/:id       # Get disaster details
+POST /api/organizations      # Register organization
+GET /api/votes/:disaster     # Get voting status
+```
+
+## 🤝 Contributing
+
+1. **Fork the Repository**
+2. **Create Feature Branch**: `git checkout -b feature/amazing-feature`
+3. **Write Tests**: Ensure your code is well-tested
+4. **Follow Conventions**: Use provided linting and formatting
+5. **Submit PR**: Include detailed description of changes
+
+### Development Guidelines
+
+- **Smart Contracts**: Follow Aztec and Solidity best practices
+- **Frontend**: Use TypeScript, follow React conventions
+- **Testing**: Maintain >80% test coverage
+- **Documentation**: Update README and inline comments
+
+## 📚 Documentation
+
+- [Aztec Protocol Docs](https://docs.aztec.network/)
+- [Noir Language Guide](https://noir-lang.org/)
+- [zkPassport SDK](https://docs.zkpassport.id/)
+- [Project Wiki](./docs/) - Detailed technical documentation
+
+## 🔐 Security
+
+### Audit Status
+
+- [ ] Smart Contract Audit (Pending)
+- [ ] Circuit Audit (Pending)
+- [ ] Frontend Security Review (Pending)
+
+### Responsible Disclosure
+
+Report security vulnerabilities to: security@godshand.xyz
+
+### Known Limitations
+
+- Testnet deployment only
+- Limited to specific disaster types
+- Requires trusted setup for circuits
+
+## 🚧 Roadmap
+
+### Phase 1: MVP (Current)
+
+- [x] Basic donation system
+- [x] Aztec integration
+- [x] Simple governance
+- [x] Web interface
+
+### Phase 2: Enhanced Privacy
+
+- [ ] Advanced circuits
+- [ ] Mobile app
+- [ ] Cross-chain support
+- [ ] Improved UX
+
+### Phase 3: Global Scale
+
+- [ ] Mainnet deployment
+- [ ] Partnership integrations
+- [ ] Advanced AI agents
+- [ ] Global disaster API
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Aztec Protocol** for privacy-preserving smart contracts
+- **zkPassport** for identity verification technology
+- **Eliza Framework** for AI agent capabilities
+- **Community Contributors** for ongoing development
+
+## 📞 Support
+
+- **Discord**: [Join our community](https://discord.gg/godshand)
+- **Twitter**: [@GodsHandDeFi](https://twitter.com/GodsHandDeFi)
+- **Email**: support@godshand.xyz
+- **Documentation**: [docs.godshand.xyz](https://docs.godshand.xyz)
+
+---
+
+**"In times of crisis, humanity's true strength emerges not from what we reveal, but from what we choose to give."**
+
+this is a commit by marshal
