@@ -994,7 +994,11 @@ export default function KYBFormClient({
                   </svg>
                 </div>
                 <p className="text-gray-700 font-['Cinzel'] text-lg">
+<<<<<<< HEAD
                   No UBOs added yet. Click "Add UBO" to get started.
+=======
+                  No UBOs added yet. Click &quot;Add UBO&quot; to get started.
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
                 </p>
               </div>
             ) : (

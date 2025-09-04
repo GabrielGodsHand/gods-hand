@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import TiltedCard from "./TiltedCard";
 
+<<<<<<< HEAD
 // Define types for Three.js objects
 interface THREE_WebGLRenderer {
   setSize: (width: number, height: number) => void;
@@ -60,6 +61,20 @@ interface CountryFeature {
 interface CountriesData {
   features: CountryFeature[];
 }
+=======
+// Types for the component
+
+// interface CountryFeature {
+//   properties: {
+//     name?: string;
+//     NAME?: string;
+//     NAME_EN?: string;
+//     ADMIN?: string;
+//     NAME_LONG?: string;
+//     [key: string]: unknown;
+//   };
+// }
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
 
 interface DisasterLocation {
   id: string;

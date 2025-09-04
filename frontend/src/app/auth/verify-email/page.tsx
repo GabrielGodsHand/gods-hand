@@ -1,11 +1,19 @@
 "use client";
 
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+import { useState, useEffect, Suspense } from "react";
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+<<<<<<< HEAD
 export default function VerifyEmailPage() {
+=======
+function VerifyEmailForm() {
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -254,3 +262,14 @@ export default function VerifyEmailPage() {
     </div>
   );
 }
+<<<<<<< HEAD
+=======
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyEmailForm />
+    </Suspense>
+  );
+}
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58

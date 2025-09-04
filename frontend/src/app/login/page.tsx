@@ -1,11 +1,19 @@
 "use client";
 
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+import { useState, useEffect, Suspense } from "react";
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+<<<<<<< HEAD
 export default function LoginPage() {
+=======
+function LoginForm() {
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -749,3 +757,14 @@ export default function LoginPage() {
     </div>
   );
 }
+<<<<<<< HEAD
+=======
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58

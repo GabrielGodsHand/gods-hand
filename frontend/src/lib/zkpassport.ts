@@ -3,8 +3,10 @@ import { QueryResult, QueryResultErrors, ZKPassport } from "@zkpassport/sdk";
 export class ZKPassportService {
   private zkPassport: ZKPassport;
 
-  constructor(domain: string = "https://localhost:3000") {
-    this.zkPassport = new ZKPassport(domain);
+  constructor() {
+    this.zkPassport = new ZKPassport(
+      process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000"
+    );
   }
 
   async verifyAge(minAge: number = 18): Promise<{
@@ -21,9 +23,10 @@ export class ZKPassportService {
     try {
       const queryBuilder = await this.zkPassport.request({
         name: "ZKPassport",
-        logo: "https://zkpassport.id/logo.png",
+        logo: "https://gods-hand.vercel.app/hand.png",
         purpose: `Prove you are ${minAge}+ years old`,
         scope: "adult",
+        devMode: true,
       });
 
       const { url, onResult } = queryBuilder.gte("age", minAge).done();

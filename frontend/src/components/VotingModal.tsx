@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { zkPassportService } from "@/lib/zkpassport";
 import { createClient } from "@/lib/supabase/client";
+<<<<<<< HEAD
+=======
+import qrcode from "qrcode";
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
 
 interface VotingModalProps {
   isOpen: boolean;
@@ -38,6 +42,7 @@ export default function VotingModal({
 
   const handleVerification = async () => {
     setIsVerifying(true);
+<<<<<<< HEAD
     setVerificationStatus("Starting ZKPassport verification...");
 
     // Simulate verification process for testing
@@ -61,6 +66,21 @@ export default function VotingModal({
 
       // Open verification URL in popup
       window.open(url, "zkpassport-verification", "width=500,height=600");
+=======
+    setVerificationStatus("Generating QR code...");
+
+    try {
+      const { url, onResult } = await zkPassportService.verifyAgeForVoting();
+
+      // Generate QR code instead of opening popup
+      const canvas = document.getElementById("qr-canvas");
+      if (canvas) {
+        await qrcode.toCanvas(canvas, url);
+        setVerificationStatus(
+          "Scan the QR code with your phone to verify your age"
+        );
+      }
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
 
       onResult(({ verified, result }) => {
         if (verified) {
@@ -268,11 +288,26 @@ export default function VotingModal({
                           Age Verification Required
                         </h3>
                         <p className="text-gray-700 font-['Cinzel'] mb-4 leading-relaxed">
+<<<<<<< HEAD
                           To maintain voting integrity, you must verify that you
                           are 18+ years old using ZKPassport. This process is
                           completely anonymous and secure.
+=======
+                          Scan the QR code with your phone to verify you are 18+
+                          using ZKPassport.
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
                         </p>
                       </div>
+
+                      {/* QR Code Display */}
+                      {isVerifying && (
+                        <div className="mb-4 text-center">
+                          <canvas
+                            id="qr-canvas"
+                            className="mx-auto border-2 border-amber-600 rounded-lg bg-white p-4"
+                          />
+                        </div>
+                      )}
 
                       {/* Status Message */}
                       {verificationStatus && (
@@ -289,6 +324,7 @@ export default function VotingModal({
                         disabled={isVerifying}
                         className="w-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 disabled:bg-gray-400/20 disabled:border-gray-400/30 disabled:text-gray-500 text-gray-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none font-['Cinzel']"
                       >
+<<<<<<< HEAD
                         {isVerifying ? (
                           <div className="flex items-center justify-center">
                             <svg
@@ -320,6 +356,14 @@ export default function VotingModal({
                     </motion.div>
                   )}
 
+=======
+                        {isVerifying
+                          ? "Waiting for verification..."
+                          : "Generate QR Code"}
+                      </button>
+                    </motion.div>
+                  )}
+>>>>>>> 3c34de57e5389602cc79d803586d6a8342ed9a58
                   {currentStep === "voting" && (
                     <motion.div
                       key="voting"
